@@ -3,6 +3,7 @@
 #include <glfw3.h>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow *window);
 
 int main() 
 {
@@ -41,18 +42,16 @@ int main()
 	
 	while (!glfwWindowShouldClose(window))
 	{
+		processInput(window);
+
+
+		glClear(GL_COLOR_BUFFER_BIT);
+		
+		glClearColor(0.4, 0.3, 0.2, 1);
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-
-	//while (true)
-	//{
-	//	glClear(GL_COLOR_BUFFER_BIT);
-	//
-	//	glClearColor(0.4, 0.3, 0.2, 1);
-	//
-	//	glfwSwapBuffers(window);
-	//}
 
 	glfwTerminate();
 	return 0;
@@ -63,4 +62,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	// make sure the viewport matches the new window dimensions; note that width and 
 	// height will be significantly larger than specified on retina displays.
 	glViewport(0, 0, width, height);
+}
+void processInput(GLFWwindow *window)
+{
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, true);
 }
