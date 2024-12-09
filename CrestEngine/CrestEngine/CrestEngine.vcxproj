@@ -156,11 +156,15 @@
     <ClCompile Include="imgui_tables.cpp" />
     <ClCompile Include="imgui_widgets.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="OBJLoader.cpp" />
     <ClCompile Include="Shader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Entities.h" />
+    <ClInclude Include="Model.h" />
+    <ClInclude Include="OBJLoader.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

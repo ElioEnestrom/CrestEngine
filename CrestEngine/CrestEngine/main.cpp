@@ -15,6 +15,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include "OBJLoader.h"
 
 #include "Shader.h"
 #include "Entities.h"
@@ -58,54 +59,14 @@ int main()
 
 	Shader ourShader("firstshader.vs.txt", "firstshader.fs.txt");
 
-	glViewport(0, 0, 800, 600); 
-	float vertices[] = {
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+	
+	std::vector<float> OBJvertices;
+	std::vector<float> OBJnormals;
+	std::vector<float> OBJtexCoords;
 
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	OBJLoader::loadOBJ("Flag.obj", OBJvertices, OBJnormals, OBJtexCoords);
 
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-	};
-	//unsigned int indices[] = {  
-	//	0, 1, 3,   
-	//	1, 2, 3    
-	//};
+	std::cout << "Loaded " << OBJvertices.size() / 3 << " vertices." << std::endl;
 
 
 	unsigned int VBO, VAO, EBO;
@@ -116,7 +77,7 @@ int main()
 	glBindVertexArray(VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, OBJvertices.size() * sizeof(float), OBJvertices.data(), GL_STATIC_DRAW);
 
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
@@ -227,16 +188,23 @@ int main()
 			newEntity->position = glm::vec3(0, 0, -3.0f);
 
 			//std::cout << std::to_string(entityManager.entities.size());
+			//std::cout << newEntity->name.c_str();
 		}
 		ImGui::BeginListBox("Scene View", {80, 200});
 		for (Entity* entity : entityManager.entities)
 		{
 			bool isSelected = entity == currentlySelected;
+			if (ImGui::Selectable(entity->name.c_str(), isSelected))
+			{
+				if (currentlySelected != entity) 
+				{
+					cubePosition[0] = {entity->position.x};
+					cubePosition[1] = {entity->position.y};
+					cubePosition[2] = {entity->position.z};
+				}
+				currentlySelected = entity; 
+				//std::cout << currentlySelected->name.c_str();
 
-			ImGui::Selectable(entity->name.c_str(), isSelected);
-
-			if (isSelected) {
-				currentlySelected = entity;
 			}
 		}
 		ImGui::EndListBox();
@@ -258,12 +226,15 @@ int main()
 			// Render all entities
 			for (Entity* entity : entityManager.entities)
 			{
-				entity->position = glm::vec3(cubePosition[0], cubePosition[1], cubePosition[2]);
-				glm::mat4 model = glm::translate(glm::mat4(1.0f), entity->position);
-				model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f) * spinSpeed, glm::vec3(0.5f, 1.0f, 0.0f));
-				ourShader.setMat4("model", model);
+				if (entity == currentlySelected)
+				{
+					entity->position = glm::vec3(cubePosition[0], cubePosition[1], cubePosition[2]);
+					glm::mat4 model = glm::translate(glm::mat4(1.0f), entity->position);
+					model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f) * spinSpeed, glm::vec3(0.5f, 1.0f, 0.0f));
+					ourShader.setMat4("model", model);
 
-				glDrawArrays(GL_TRIANGLES, 0, 36);
+					glDrawArrays(GL_TRIANGLES, 0, 36);
+				}
 			}
 		}
 
