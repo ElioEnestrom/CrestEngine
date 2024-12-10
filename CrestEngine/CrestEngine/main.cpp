@@ -60,7 +60,7 @@ int main()
 	Shader ourShader("firstshader.vs.txt", "firstshader.fs.txt");
 
 	
-	std::vector<float> OBJvertices;
+	std::vector<Vertex> OBJvertices;
 	std::vector<float> OBJnormals;
 	std::vector<float> OBJtexCoords;
 

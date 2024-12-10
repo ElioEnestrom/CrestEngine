@@ -4,11 +4,12 @@
 
 #include <vector>
 #include <string>
+#include "Mesh.h"
 
 namespace OBJLoader {
     // Function declaration
     void loadOBJ(const std::string& filename,
-        std::vector<float>& vertices,
+        std::vector<Vertex>& vertices,
         std::vector<float>& normals,
         std::vector<float>& texCoords);
 }

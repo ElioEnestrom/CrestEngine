@@ -2,11 +2,13 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include "Mesh.h"
+
 
 namespace OBJLoader {
 
     void loadOBJ(const std::string& filename,
-        std::vector<float>& vertices,
+        std::vector<Vertex>& vertices,
         std::vector<float>& normals,
         std::vector<float>& texCoords) 
     {
@@ -25,9 +27,9 @@ namespace OBJLoader {
             if (prefix == "v") {
                 float x, y, z;
                 iss >> x >> y >> z;
-                vertices.push_back(x);
-                vertices.push_back(y);
-                vertices.push_back(z);
+                Vertex vertex;
+                iss >> vertex.x >> vertex.y >> vertex.z;
+                vertices.push_back(vertex);
             }
             else if (prefix == "vn") {
                 float nx, ny, nz;
