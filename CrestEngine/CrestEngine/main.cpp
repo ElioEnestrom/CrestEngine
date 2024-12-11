@@ -60,11 +60,14 @@ int main()
 	Shader ourShader("firstshader.vs.txt", "firstshader.fs.txt");
 
 	
-	std::vector<Vertex> OBJvertices;
+	std::vector<float> OBJvertices;
 	std::vector<float> OBJnormals;
 	std::vector<float> OBJtexCoords;
+	std::vector<unsigned int> OBJpositionIndex;
+	std::vector<unsigned int> OBJtextureIndex;
+	std::vector<unsigned int> OBJnormalIndex;
 
-	OBJLoader::loadOBJ("Flag.obj", OBJvertices, OBJnormals, OBJtexCoords);
+	OBJLoader::loadOBJ("Flag.obj", OBJvertices, OBJnormals, OBJtexCoords, OBJpositionIndex, OBJtextureIndex, OBJnormalIndex);
 
 	std::cout << "Loaded " << OBJvertices.size() / 3 << " vertices." << std::endl;
 
@@ -79,8 +82,9 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, OBJvertices.size() * sizeof(float), OBJvertices.data(), GL_STATIC_DRAW);
 
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, OBJpositionIndex.size() * sizeof(unsigned int), OBJpositionIndex.data(), GL_STATIC_DRAW);
+
 	
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -233,7 +237,8 @@ int main()
 					model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f) * spinSpeed, glm::vec3(0.5f, 1.0f, 0.0f));
 					ourShader.setMat4("model", model);
 
-					glDrawArrays(GL_TRIANGLES, 0, 36);
+					glDrawElements(GL_TRIANGLES, OBJpositionIndex.size(), GL_UNSIGNED_INT, 0);
+					//glDrawArrays(GL_TRIANGLES, 0, 36);
 				}
 			}
 		}

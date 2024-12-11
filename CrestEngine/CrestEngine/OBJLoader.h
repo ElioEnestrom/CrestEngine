@@ -9,9 +9,12 @@
 namespace OBJLoader {
     // Function declaration
     void loadOBJ(const std::string& filename,
-        std::vector<Vertex>& vertices,
+        std::vector<float>& vertices,
         std::vector<float>& normals,
-        std::vector<float>& texCoords);
+        std::vector<float>& texCoords,
+        std::vector<unsigned int>& positionIndex,
+        std::vector<unsigned int>& textureIndex,
+        std::vector<unsigned int>& normalIndex);
 }
 
 #endif // LOAD_OBJ_H
