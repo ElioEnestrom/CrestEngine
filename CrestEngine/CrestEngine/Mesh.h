@@ -6,8 +6,9 @@
 #include <list>
 
 struct Vertex {
-    glm::vec3 position;
-    float x, y, z; // alt. 2
+    glm::vec3 position;  // x, y, z
+    glm::vec2 texCoord;  // u, v
+    glm::vec3 normal;    // nx, ny, nz
 };
 
 struct Mesh {

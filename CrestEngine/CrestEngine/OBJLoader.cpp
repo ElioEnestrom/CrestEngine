@@ -13,7 +13,8 @@ namespace OBJLoader {
         std::vector<float>& texCoords, 
         std::vector<unsigned int>& positionIndex, 
         std::vector<unsigned int>& textureIndex, 
-        std::vector<unsigned int>& normalIndex) 
+        std::vector<unsigned int>& normalIndex, 
+        std::vector<Vertex>& finalVertices)
     {
         std::ifstream file(filename);
         if (!file.is_open()) {
@@ -61,9 +62,9 @@ namespace OBJLoader {
 				//std::cout << p2 << std::endl;
 				//std::cout << p3 << std::endl;
 
-				positionIndex.push_back(p1);
-				positionIndex.push_back(p2);
-				positionIndex.push_back(p3);
+				positionIndex.push_back(p1 - 1);
+				positionIndex.push_back(p2 - 1);
+				positionIndex.push_back(p3 - 1);
 				textureIndex.push_back(t1);
 				textureIndex.push_back(t2);
 				textureIndex.push_back(t3);
@@ -72,6 +73,26 @@ namespace OBJLoader {
 				normalIndex.push_back(n3);
             }
         }
+        for (size_t i = 0; i < positionIndex.size(); ++i) {
+            Vertex vertex;
+            vertex.position = glm::vec3(
+                vertices[3 * positionIndex[i]],         // x
+                vertices[3 * positionIndex[i] + 1],     // y
+                vertices[3 * positionIndex[i] + 2]      // z
+            );
+            vertex.texCoord = glm::vec2(
+                texCoords[2 * textureIndex[i]],         // u
+                texCoords[2 * textureIndex[i] + 1]      // v
+            );
+            vertex.normal = glm::vec3(
+                normals[3 * normalIndex[i]],            // nx
+                normals[3 * normalIndex[i] + 1],        // ny
+                normals[3 * normalIndex[i] + 2]         // nz
+            );
+
+            finalVertices.push_back(vertex);
+        }
+
     }
 
 } // namespace OBJLoader
