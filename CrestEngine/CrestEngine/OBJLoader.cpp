@@ -13,8 +13,7 @@ namespace OBJLoader {
         std::vector<float>& texCoords, 
         std::vector<unsigned int>& positionIndex, 
         std::vector<unsigned int>& textureIndex, 
-        std::vector<unsigned int>& normalIndex, 
-        std::vector<Vertex>& finalVertices)
+        std::vector<unsigned int>& normalIndex)
     {
         std::ifstream file(filename);
         if (!file.is_open()) {
@@ -90,7 +89,7 @@ namespace OBJLoader {
                 normals[3 * normalIndex[i] + 2]         // nz
             );
 
-            finalVertices.push_back(vertex);
+            //finalVertices.push_back(vertex);
         }
 
     }
