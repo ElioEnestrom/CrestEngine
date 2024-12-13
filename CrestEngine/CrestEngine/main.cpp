@@ -66,8 +66,9 @@ int main()
 	std::vector<unsigned int> OBJpositionIndex;
 	std::vector<unsigned int> OBJtextureIndex;
 	std::vector<unsigned int> OBJnormalIndex;
+	std::vector<Vertex> finalVertices;
 
-	OBJLoader::loadOBJ("Flag.obj", OBJvertices, OBJnormals, OBJtexCoords, OBJpositionIndex, OBJtextureIndex, OBJnormalIndex);
+	OBJLoader::loadOBJ("Flag.obj", OBJvertices, OBJnormals, OBJtexCoords, OBJpositionIndex, OBJtextureIndex, OBJnormalIndex, finalVertices);
 
 	std::cout << "Loaded " << OBJvertices.size() / 3 << " vertices." << std::endl;
 
@@ -84,6 +85,8 @@ int main()
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, OBJpositionIndex.size() * sizeof(unsigned int), OBJpositionIndex.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, OBJnormalIndex.size() * sizeof(unsigned int), OBJnormalIndex.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, OBJtextureIndex.size() * sizeof(unsigned int), OBJtextureIndex.data(), GL_STATIC_DRAW);
 
 	
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);

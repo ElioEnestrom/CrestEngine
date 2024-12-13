@@ -14,7 +14,8 @@ namespace OBJLoader {
         std::vector<float>& texCoords,
         std::vector<unsigned int>& positionIndex,
         std::vector<unsigned int>& textureIndex,
-        std::vector<unsigned int>& normalIndex);
+        std::vector<unsigned int>& normalIndex,
+        std::vector<Vertex>& finalVertices);
 }
 
 #endif // LOAD_OBJ_H
