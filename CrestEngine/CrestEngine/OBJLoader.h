@@ -15,6 +15,7 @@ namespace OBJLoader {
         std::vector<unsigned int>& positionIndex,
         std::vector<unsigned int>& textureIndex,
         std::vector<unsigned int>& normalIndex,
+        std::vector<unsigned int>& vertexIndex,
         std::vector<Vertex>& finalVertices);
 }
 

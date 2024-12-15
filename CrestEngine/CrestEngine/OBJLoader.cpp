@@ -10,10 +10,11 @@ namespace OBJLoader {
     void loadOBJ(const std::string& filename,
         std::vector<float>& vertices,
         std::vector<float>& normals,
-        std::vector<float>& texCoords, 
-        std::vector<unsigned int>& positionIndex, 
-        std::vector<unsigned int>& textureIndex, 
+        std::vector<float>& texCoords,
+        std::vector<unsigned int>& positionIndex,
+        std::vector<unsigned int>& textureIndex,
         std::vector<unsigned int>& normalIndex,
+        std::vector<unsigned int>& vertexIndex,
         std::vector<Vertex>& finalVertices)
     {
         std::ifstream file(filename);
@@ -31,9 +32,10 @@ namespace OBJLoader {
             if (prefix == "v") {
                 float x, y, z;
                 iss >> x >> y >> z;
-				vertices.push_back(x);
-				vertices.push_back(y);
-				vertices.push_back(z);
+                vertices.push_back(x);
+                vertices.push_back(y);
+                vertices.push_back(z);
+                //std::cout << vertices[2] << std::endl;
                 //Vertex vertex;
                 //iss >> vertex.x >> vertex.y >> vertex.z;
                 //vertices.push_back(vertex);
@@ -52,26 +54,77 @@ namespace OBJLoader {
                 texCoords.push_back(v);
             }
             else if (prefix == "f") {
-                unsigned int p1, t1, n1, p2, t2, n2, p3, t3, n3; char slash; // to skip the slashes
+                unsigned int posIdx, texIdx, normIdx;
+                char slash; // Skip the slashes
+                for (int i = 0; i < 3; ++i) {
+                    iss >> posIdx >> slash >> texIdx >> slash >> normIdx;
+                    positionIndex.push_back(posIdx - 1);  // Convert to 0-based index
+                    textureIndex.push_back(texIdx - 1);
+                    normalIndex.push_back(normIdx - 1);
 
-                iss >> p1 >> slash >> t1 >> slash >> n1
-                    >> p2 >> slash >> t2 >> slash >> n2
-                    >> p3 >> slash >> t3 >> slash >> n3;
+                    //std::cout << posIdx << std::endl;
+                }
+                /*else if (prefix == "f") {
+                    unsigned int p1, t1, n1, p2, t2, n2, p3, t3, n3; char slash; // to skip the slashes
 
-				//std::cout << p1 << std::endl;
-				//std::cout << p2 << std::endl;
-				//std::cout << p3 << std::endl;
+                    iss >> p1 >> slash >> t1 >> slash >> n1
+                        >> p2 >> slash >> t2 >> slash >> n2
+                        >> p3 >> slash >> t3 >> slash >> n3;
 
-				positionIndex.push_back(p1 - 1);
-				positionIndex.push_back(p2 - 1);
-				positionIndex.push_back(p3 - 1);
-				textureIndex.push_back(t1);
-				textureIndex.push_back(t2);
-				textureIndex.push_back(t3);
-				normalIndex.push_back(n1);
-				normalIndex.push_back(n2);
-				normalIndex.push_back(n3);
+                    //std::cout << p1 << std::endl;
+                    //std::cout << p2 << std::endl;
+                    //std::cout << p3 << std::endl;
+
+                    positionIndex.push_back(p1 - 1);
+                    positionIndex.push_back(p2 - 1);
+                    positionIndex.push_back(p3 - 1);
+                    textureIndex.push_back(t1);
+                    textureIndex.push_back(t2);
+                    textureIndex.push_back(t3);
+                    normalIndex.push_back(n1);
+                    normalIndex.push_back(n2);
+                    normalIndex.push_back(n3);
+                }*/
+
+        }
+            Vertex vertex;
+            for (size_t i = 0; i < positionIndex.size(); ++i) {
+                vertex.position = glm::vec3(
+                    vertices[3 * positionIndex[i]],
+                    vertices[3 * positionIndex[i] + 1],
+                    vertices[3 * positionIndex[i] + 2]
+                );
+
+                vertex.texCoord = glm::vec2(
+                    texCoords[2 * textureIndex[i]],
+                    texCoords[2 * textureIndex[i] + 1]
+                );
+
+                vertex.normal = glm::vec3(
+                    normals[3 * normalIndex[i]],
+                    normals[3 * normalIndex[i] + 1],
+                    normals[3 * normalIndex[i] + 2]
+                );
+                finalVertices.push_back(vertex);
             }
+            }
+
+            //std::cout << vertices[3 * positionIndex[0]] << std::endl;
+            //std::cout << vertices[3 * positionIndex[1] + 1] << std::endl;
+            //std::cout << vertices[3 * positionIndex[2] + 2] << std::endl;
+            std::cout << finalVertices.size() << std::endl;
+        //for (size_t i = 0; i < textureIndex.size(); ++i) 
+        //{
+        //}
+        //for (size_t i = 0; i < normalIndex.size(); ++i) 
+        //{
+        //
+        //}
+
+        for (size_t i = 0; i < positionIndex.size(); ++i) {
+            vertexIndex.push_back(static_cast<unsigned int>(positionIndex[i]));
+            vertexIndex.push_back(static_cast<unsigned int>(textureIndex[i]));
+            vertexIndex.push_back(static_cast<unsigned int>(normalIndex[i]));
         }
 
     }

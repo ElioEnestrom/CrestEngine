@@ -66,34 +66,61 @@ int main()
 	std::vector<unsigned int> OBJpositionIndex;
 	std::vector<unsigned int> OBJtextureIndex;
 	std::vector<unsigned int> OBJnormalIndex;
+	std::vector<unsigned int> OBJvertexIndex;
 	std::vector<Vertex> finalVertices;
 
-	OBJLoader::loadOBJ("Flag.obj", OBJvertices, OBJnormals, OBJtexCoords, OBJpositionIndex, OBJtextureIndex, OBJnormalIndex, finalVertices);
+	OBJLoader::loadOBJ("Flag.obj", OBJvertices, OBJnormals, OBJtexCoords, OBJpositionIndex, OBJtextureIndex, OBJnormalIndex, OBJvertexIndex, finalVertices);
 
 	std::cout << "Loaded " << OBJvertices.size() / 3 << " vertices." << std::endl;
 
 
-	unsigned int VBO, VAO, EBO;
+	unsigned int VBO, VAO, EBO, positionBuffer, textureBuffer, normalBuffer;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
+	glGenBuffers(1, &positionBuffer);
+	glGenBuffers(1, &textureBuffer);
+	glGenBuffers(1, &normalBuffer);
 
 	glBindVertexArray(VAO);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, OBJvertices.size() * sizeof(float), OBJvertices.data(), GL_STATIC_DRAW);
+	//glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
+	//glBufferData(GL_ARRAY_BUFFER, OBJvertices.size() * sizeof(float), OBJvertices.data(), GL_STATIC_DRAW);
+	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	//glEnableVertexAttribArray(0);
+	//
+	//// Create and bind texture coordinate buffer
+	//glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
+	//glBufferData(GL_ARRAY_BUFFER, OBJtexCoords.size() * sizeof(float), OBJtexCoords.data(), GL_STATIC_DRAW);
+	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	//glEnableVertexAttribArray(1);
+	//
+	//// Create and bind normal buffer
+	//glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
+	//glBufferData(GL_ARRAY_BUFFER, OBJnormals.size() * sizeof(float), OBJnormals.data(), GL_STATIC_DRAW);
+	//glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	//glEnableVertexAttribArray(2);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, OBJpositionIndex.size() * sizeof(unsigned int), OBJpositionIndex.data(), GL_STATIC_DRAW);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, OBJnormalIndex.size() * sizeof(unsigned int), OBJnormalIndex.data(), GL_STATIC_DRAW);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, OBJtextureIndex.size() * sizeof(unsigned int), OBJtextureIndex.data(), GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, finalVertices.size() * sizeof(float), finalVertices.data(), GL_STATIC_DRAW);
+
+	//std::cout << OBJpositionIndex.size();
+	//
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, OBJpositionIndex.size() * sizeof(unsigned int), OBJpositionIndex.data(), GL_STATIC_DRAW);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, OBJnormalIndex.size() * sizeof(unsigned int), OBJnormalIndex.data(), GL_STATIC_DRAW);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, OBJtextureIndex.size() * sizeof(unsigned int), OBJtextureIndex.data(), GL_STATIC_DRAW);
 
 	
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
     // texture coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
     glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    glEnableVertexAttribArray(2);
 
 	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(6 * sizeof(float)));
 	//glEnableVertexAttribArray(2);
@@ -240,8 +267,8 @@ int main()
 					model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f) * spinSpeed, glm::vec3(0.5f, 1.0f, 0.0f));
 					ourShader.setMat4("model", model);
 
-					glDrawElements(GL_TRIANGLES, OBJpositionIndex.size(), GL_UNSIGNED_INT, 0);
-					//glDrawArrays(GL_TRIANGLES, 0, 36);
+					//glDrawElements(GL_TRIANGLES, OBJpositionIndex.size(), GL_UNSIGNED_INT, 0);
+					glDrawArrays(GL_TRIANGLES, 0, (GLsizei)finalVertices.size());
 				}
 			}
 		}
