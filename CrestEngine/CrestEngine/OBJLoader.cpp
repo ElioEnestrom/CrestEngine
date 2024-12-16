@@ -86,29 +86,40 @@ namespace OBJLoader {
                     normalIndex.push_back(n3);
                 }*/
 
+            }
         }
             Vertex vertex;
-            for (size_t i = 0; i < positionIndex.size(); ++i) {
+            for (size_t i = 0; i < positionIndex.size(); i++) {
                 vertex.position = glm::vec3(
                     vertices[3 * positionIndex[i]],
                     vertices[3 * positionIndex[i] + 1],
                     vertices[3 * positionIndex[i] + 2]
                 );
-
                 vertex.texCoord = glm::vec2(
                     texCoords[2 * textureIndex[i]],
                     texCoords[2 * textureIndex[i] + 1]
                 );
-
-                vertex.normal = glm::vec3(
-                    normals[3 * normalIndex[i]],
-                    normals[3 * normalIndex[i] + 1],
-                    normals[3 * normalIndex[i] + 2]
-                );
-                finalVertices.push_back(vertex);
-            }
+				finalVertices.push_back(vertex);
+//                finalVertices.push_back(vertex);
             }
 
+            //for (size_t i = 0; i < normalIndex.size(); ++i) {
+            //    vertex.normal = glm::vec3(
+            //        normals[3 * normalIndex[i]],
+            //        normals[3 * normalIndex[i] + 1],
+            //        normals[3 * normalIndex[i] + 2]
+            //    );
+            //}
+
+        //for (size_t i = 0; i < finalVertices.size(); ++i)
+        //{
+		//	std::cout << finalVertices[i].position.x << std::endl;
+		//	std::cout << finalVertices[i].position.y << std::endl;
+		//	std::cout << finalVertices[i].position.z << std::endl;
+        //    
+        //}
+
+        
             //std::cout << vertices[3 * positionIndex[0]] << std::endl;
             //std::cout << vertices[3 * positionIndex[1] + 1] << std::endl;
             //std::cout << vertices[3 * positionIndex[2] + 2] << std::endl;

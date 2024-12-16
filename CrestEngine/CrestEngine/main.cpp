@@ -84,26 +84,8 @@ int main()
 
 	glBindVertexArray(VAO);
 
-	//glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
-	//glBufferData(GL_ARRAY_BUFFER, OBJvertices.size() * sizeof(float), OBJvertices.data(), GL_STATIC_DRAW);
-	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	//glEnableVertexAttribArray(0);
-	//
-	//// Create and bind texture coordinate buffer
-	//glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
-	//glBufferData(GL_ARRAY_BUFFER, OBJtexCoords.size() * sizeof(float), OBJtexCoords.data(), GL_STATIC_DRAW);
-	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-	//glEnableVertexAttribArray(1);
-	//
-	//// Create and bind normal buffer
-	//glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-	//glBufferData(GL_ARRAY_BUFFER, OBJnormals.size() * sizeof(float), OBJnormals.data(), GL_STATIC_DRAW);
-	//glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	//glEnableVertexAttribArray(2);
-
-
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, finalVertices.size() * sizeof(float), finalVertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, finalVertices.size() * sizeof(Vertex), finalVertices.data(), GL_STATIC_DRAW);
 
 	//std::cout << OBJpositionIndex.size();
 	//
@@ -116,10 +98,10 @@ int main()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
     // texture coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(5 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
 	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(6 * sizeof(float)));
