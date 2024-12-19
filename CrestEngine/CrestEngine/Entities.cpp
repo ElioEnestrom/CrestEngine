@@ -10,7 +10,8 @@ Entity* EntityManager::CreateEntity()
     
     newEntity->name = "Entity " + std::to_string(amountOfEntities);
     newEntity->transform = glm::mat4(1.0f);
-    newEntity->position = glm::vec3(0, 0, -3.0f);
+    newEntity->position = glm::vec3(0, -5.0f, -20.0f);
+    newEntity->rotation = glm::vec3(0, 0, 0);
     amountOfEntities++;
     
     entities.push_back(newEntity);

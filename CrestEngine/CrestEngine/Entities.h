@@ -10,6 +10,7 @@ struct Entity {
 	std::string name;
 	glm::mat4 transform;
 	glm::vec3 position;
+	glm::vec3 rotation;
 	//Component component;
 	//std::string modelSrc;
 	//std::string textureSrc;

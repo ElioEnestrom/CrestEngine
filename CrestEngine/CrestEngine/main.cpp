@@ -19,10 +19,13 @@
 
 #include "Shader.h"
 #include "Entities.h"
+#include "Camera.h"
+#include "Time.h"
+#include "Input.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow *window);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 int main() 
 {
@@ -167,19 +170,23 @@ int main()
 	ImGui_ImplOpenGL3_Init();
 
 	bool drawCubes = true;
-	float spinSpeed = 1;
+	float spinSpeed = 10;
 	float xLocation = 0;
 	float yLocation = 0;
 	//glm::mat4 trans = glm::mat4(1.0f);
 
 	EntityManager entityManager;
 	Entity* currentlySelected = nullptr;
-	float cubePosition[3] = { 0, 0, -3.0f};
+	float cubePosition[3] = { 0, -5, -10.0f};
+	float cubeRotation[3] = { 0, 0, 0};
 
-
+	glfwSetKeyCallback(window, key_callback);
+	
+	
 	while (!glfwWindowShouldClose(window))
 	{
-		processInput(window);
+		Input::ActivateInput(window);
+		Time::DeltaTime();
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -195,17 +202,23 @@ int main()
 
 		ImGui::Begin("Cubes!");
 		ImGui::Checkbox("Draw Cubes", &drawCubes);
-		ImGui::DragFloat3("New Cube Position", cubePosition, 0.01f, -FLT_MAX, FLT_MAX);
+		ImGui::DragFloat3("Position", cubePosition, 0.01f, -FLT_MAX, FLT_MAX);
+		ImGui::DragFloat3("Rotation", cubeRotation, 0.01f, -FLT_MAX, FLT_MAX);
+
 
 		if (ImGui::Button("Spawn Cube"))
 		{
 			// Create a new entity and set its position
 			Entity* newEntity = entityManager.CreateEntity(); 
-			newEntity->position = glm::vec3(0, 0, -3.0f);
+			newEntity->position = glm::vec3(0, -5.f, -20.f);
 
+			//std::cout << &currentlySelected->name[0];
 			//std::cout << std::to_string(entityManager.entities.size());
 			//std::cout << newEntity->name.c_str();
 		}
+		//ImGui::InputText("Name", &currentlySelected->name[0], currentlySelected->name.size());
+		ImGui::Text("Currently Selected: %s", currentlySelected ? currentlySelected->name.c_str() : "None");
+
 		ImGui::BeginListBox("Scene View", {80, 200});
 		for (Entity* entity : entityManager.entities)
 		{
@@ -217,6 +230,9 @@ int main()
 					cubePosition[0] = {entity->position.x};
 					cubePosition[1] = {entity->position.y};
 					cubePosition[2] = {entity->position.z};
+					cubeRotation[0] = { entity->rotation.x };
+					cubeRotation[1] = { entity->rotation.y };
+					cubeRotation[2] = { entity->rotation.z };
 				}
 				currentlySelected = entity; 
 				//std::cout << currentlySelected->name.c_str();
@@ -228,12 +244,17 @@ int main()
 		ImGui::SliderFloat("Spin Speed", &spinSpeed, 0.1f, 5.0f);
 		ImGui::End();
 
+
 		if (drawCubes)
 		{
 			ourShader.use();
 
-			glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
-			glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+			glm::mat4 view;
+
+			Camera::MoveCamera(view);
+			
+
+			glm::mat4 projection = glm::perspective(glm::radians(Camera::GetFOV()), 800.0f / 600.0f, 0.1f, 100.0f);
 			ourShader.setMat4("view", view);
 			ourShader.setMat4("projection", projection);
 
@@ -246,7 +267,15 @@ int main()
 				{
 					entity->position = glm::vec3(cubePosition[0], cubePosition[1], cubePosition[2]);
 					glm::mat4 model = glm::translate(glm::mat4(1.0f), entity->position);
-					model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f) * spinSpeed, glm::vec3(0.5f, 1.0f, 0.0f));
+					//model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f) * spinSpeed, glm::vec3(0.0f, 1.0f, 0.0f));
+					entity->rotation = glm::vec3(cubeRotation[0], cubeRotation[1], cubeRotation[2]); 
+					glm::vec3 rotationAxis = entity->rotation;
+					if (glm::length(rotationAxis) > 0.0f) {
+						model = glm::rotate(model, glm::radians(rotationAxis.x), glm::vec3(1.0f, 0, 0));
+						model = glm::rotate(model, glm::radians(rotationAxis.y), glm::vec3(0, 1.0f, 0));
+						model = glm::rotate(model, glm::radians(rotationAxis.z), glm::vec3(0, 0, 1.f));
+					}
+					//model = glm::rotate(model, spinSpeed, glm::vec3(cubeRotation[0], cubeRotation[1], cubeRotation[2]));
 					ourShader.setMat4("model", model);
 
 					//glDrawElements(GL_TRIANGLES, OBJpositionIndex.size(), GL_UNSIGNED_INT, 0);
@@ -277,8 +306,11 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	// height will be significantly larger than specified on retina displays.
 	glViewport(0, 0, width, height);
 }
-void processInput(GLFWwindow *window)
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
+	if (key == GLFW_KEY_LEFT_CONTROL && action == GLFW_PRESS)
+	{
+		Camera::SwitchCamera();
+	}
 }
