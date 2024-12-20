@@ -136,6 +136,8 @@ int main()
 
 	unsigned int texture2 = Texture::loadTexture("jail.png");
 
+	unsigned int texture3 = Texture::loadTexture("Pride.png");
+
 	ourShader.use();
 	ourShader.setInt("texture2", 1); // or with shader class
 	//ourShader.setInt("texture1", 0); // or with shader class
@@ -151,7 +153,6 @@ int main()
 	ImGui_ImplOpenGL3_Init();
 
 	bool drawCubes = true;
-	float spinSpeed = 10;
 	float xLocation = 0;
 	float yLocation = 0;
 	//glm::mat4 trans = glm::mat4(1.0f);
@@ -168,8 +169,8 @@ int main()
 	currentBuffer = VBO1;
 	currentObject = finalVerticesFlag;
 	
-	std::vector<std::string> textureNames = { "face.png", "jail.png" };
-	std::vector<unsigned int> textureIDs = { texture1, texture2 };
+	std::vector<std::string> textureNames = { "face.png", "jail.png", "Pride.png"};
+	std::vector<unsigned int> textureIDs = { texture1, texture2, texture3 };
 	int texture1Index = 0;
 	int texture2Index = 1;
 	int currentTextureIndex = 0; 
@@ -212,8 +213,10 @@ int main()
 		//ImGui::InputText("Name", &currentlySelected->name[0], currentlySelected->name.size());
 		ImGui::Text("Currently Selected: %s", currentlySelected ? currentlySelected->name.c_str() : "None");
 
-		ImGui::BeginListBox("Scene View", {80, 200});
-		for (Entity* entity : entityManager.entities)
+		if (ImGui::BeginListBox("Scene View", { 80, 200 }))
+		{
+
+			for (Entity* entity : entityManager.entities)
 		{
 			bool isSelected = entity == currentlySelected;
 			if (ImGui::Selectable(entity->name.c_str(), isSelected))
@@ -231,8 +234,9 @@ int main()
 				//std::cout << currentlySelected->name.c_str();
 
 			}
-		}
+			}
 		ImGui::EndListBox();
+		}
 		const char* comboPreviewValue = modelNames[currentModelIndex].c_str(); // Preview value
 		if (ImGui::BeginCombo("Select Model", comboPreviewValue))
 		{
@@ -263,6 +267,7 @@ int main()
 			}
 			ImGui::EndCombo();
 		}    
+		ImGui::PushItemWidth(100);
 		const char* texture1Preview = textureNames[texture1Index].c_str();
 		if (ImGui::BeginCombo("Texture 1", texture1Preview))
 		{
@@ -279,10 +284,12 @@ int main()
 			}
 			ImGui::EndCombo();
 		}
+		ImGui::PopItemWidth();
 
 		ImGui::SameLine(); // Place the next combo box next to the previous one
 
 		// Combo box for the second texture
+		ImGui::PushItemWidth(100);
 		const char* texture2Preview = textureNames[texture2Index].c_str();
 		if (ImGui::BeginCombo("Texture 2", texture2Preview))
 		{
@@ -299,9 +306,9 @@ int main()
 			}
 			ImGui::EndCombo();
 		}
+		ImGui::PopItemWidth();
 
 		ImGui::SliderFloat("Texture Mixer", &textureMixer, 0.0f, 1.0f);
-		ImGui::SliderFloat("Spin Speed", &spinSpeed, 0.1f, 5.0f);
 		ImGui::End();
 
 
@@ -328,7 +335,6 @@ int main()
 				{
 					entity->position = glm::vec3(cubePosition[0], cubePosition[1], cubePosition[2]);
 					glm::mat4 model = glm::translate(glm::mat4(1.0f), entity->position);
-					//model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f) * spinSpeed, glm::vec3(0.0f, 1.0f, 0.0f));
 					entity->rotation = glm::vec3(cubeRotation[0], cubeRotation[1], cubeRotation[2]); 
 					glm::vec3 rotationAxis = entity->rotation;
 					if (glm::length(rotationAxis) > 0.0f) {
@@ -336,7 +342,6 @@ int main()
 						model = glm::rotate(model, glm::radians(rotationAxis.y), glm::vec3(0, 1.0f, 0));
 						model = glm::rotate(model, glm::radians(rotationAxis.z), glm::vec3(0, 0, 1.f));
 					}
-					//model = glm::rotate(model, spinSpeed, glm::vec3(cubeRotation[0], cubeRotation[1], cubeRotation[2]));
 					ourShader.setMat4("model", model);
 
 					//glDrawElements(GL_TRIANGLES, OBJpositionIndex.size(), GL_UNSIGNED_INT, 0);
