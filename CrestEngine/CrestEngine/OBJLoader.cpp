@@ -8,15 +8,16 @@
 namespace OBJLoader {
 
     void loadOBJ(const std::string& filename,
-        std::vector<float>& vertices,
-        std::vector<float>& normals,
-        std::vector<float>& texCoords,
-        std::vector<unsigned int>& positionIndex,
-        std::vector<unsigned int>& textureIndex,
-        std::vector<unsigned int>& normalIndex,
-        std::vector<unsigned int>& vertexIndex,
         std::vector<Vertex>& finalVertices)
     {
+        std::vector<float> vertices;
+        std::vector<float> normals;
+        std::vector<float> texCoords;
+        std::vector<unsigned int> positionIndex;
+        std::vector<unsigned int> textureIndex;
+        std::vector<unsigned int> normalIndex;
+        std::vector<unsigned int> vertexIndex;
+
         std::ifstream file(filename);
         if (!file.is_open()) {
             std::cerr << "Failed to open OBJ file: " << filename << std::endl;

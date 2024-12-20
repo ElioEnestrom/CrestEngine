@@ -22,6 +22,7 @@
 #include "Camera.h"
 #include "Time.h"
 #include "Input.h"
+#include "Texture.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -70,25 +71,46 @@ int main()
 	std::vector<unsigned int> OBJtextureIndex;
 	std::vector<unsigned int> OBJnormalIndex;
 	std::vector<unsigned int> OBJvertexIndex;
-	std::vector<Vertex> finalVertices;
+	std::vector<Vertex> finalVerticesCube;
+	std::vector<Vertex> finalVerticesFlag;
+	std::vector<Vertex> currentObject;
 
-	OBJLoader::loadOBJ("Flag.obj", OBJvertices, OBJnormals, OBJtexCoords, OBJpositionIndex, OBJtextureIndex, OBJnormalIndex, OBJvertexIndex, finalVertices);
+	OBJLoader::loadOBJ("Flag.obj", finalVerticesFlag);
+	OBJLoader::loadOBJ("Cube.obj", finalVerticesCube);
 
-	std::cout << "Loaded " << OBJvertices.size() / 3 << " vertices." << std::endl;
+	std::cout << "Loaded " << finalVerticesFlag.size() / 3 << " vertices." << std::endl;
+	std::cout << "Loaded " << finalVerticesCube.size() / 3 << " vertices." << std::endl;
 
 
-	unsigned int VBO, VAO, EBO, positionBuffer, textureBuffer, normalBuffer;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
+	unsigned int VBO1, VBO2, VAO1, VAO2, EBO, positionBuffer, textureBuffer, normalBuffer, currentBuffer;
+	glGenVertexArrays(1, &VAO1);
+	glGenVertexArrays(1, &VAO2);
+	glGenBuffers(1, &VBO1);
+	glGenBuffers(1, &VBO2);
 	glGenBuffers(1, &EBO);
 	glGenBuffers(1, &positionBuffer);
 	glGenBuffers(1, &textureBuffer);
 	glGenBuffers(1, &normalBuffer);
 
-	glBindVertexArray(VAO);
+	glBindVertexArray(VAO1);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, finalVertices.size() * sizeof(Vertex), finalVertices.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO1);
+	glBufferData(GL_ARRAY_BUFFER, finalVerticesFlag.size() * sizeof(Vertex), finalVerticesFlag.data(), GL_STATIC_DRAW);
+	
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+    glEnableVertexAttribArray(0);
+    // texture coord attribute
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(5 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+	glBindVertexArray(VAO2);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+	glBufferData(GL_ARRAY_BUFFER, finalVerticesCube.size() * sizeof(Vertex), finalVerticesCube.data(), GL_STATIC_DRAW);
+
 
 	//std::cout << OBJpositionIndex.size();
 	//
@@ -110,50 +132,9 @@ int main()
 	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(6 * sizeof(float)));
 	//glEnableVertexAttribArray(2);
 
-	unsigned int texture1;
-	glGenTextures(1, &texture1);
-	glBindTexture(GL_TEXTURE_2D, texture1);
-	// set the texture wrapping/filtering options (on the currently bound texture object)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	unsigned int texture1 = Texture::loadTexture("face.png");
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	stbi_set_flip_vertically_on_load(true);
-	// load and generate the texture
-	int width, height, nrChannels;
-	unsigned char* data = stbi_load("face.png", &width, &height, &nrChannels, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-
-	unsigned int texture2;
-	glGenTextures(1, &texture2);
-	glBindTexture(GL_TEXTURE_2D, texture2);
-	// set the texture wrapping/filtering options (on the currently bound texture object)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	
-	data = stbi_load("jail.png", &width, &height, &nrChannels, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	stbi_image_free(data);
+	unsigned int texture2 = Texture::loadTexture("jail.png");
 
 	ourShader.use();
 	ourShader.setInt("texture2", 1); // or with shader class
@@ -181,8 +162,19 @@ int main()
 	float cubeRotation[3] = { 0, 0, 0};
 
 	glfwSetKeyCallback(window, key_callback);
+
+	std::vector<std::string> modelNames = { "Flag", "Cube"};
+	int currentModelIndex = 0;
+	currentBuffer = VBO1;
+	currentObject = finalVerticesFlag;
 	
-	
+	std::vector<std::string> textureNames = { "face.png", "jail.png" };
+	std::vector<unsigned int> textureIDs = { texture1, texture2 };
+	int texture1Index = 0;
+	int texture2Index = 1;
+	int currentTextureIndex = 0; 
+	float textureMixer = 0.35f;
+
 	while (!glfwWindowShouldClose(window))
 	{
 		Input::ActivateInput(window);
@@ -196,15 +188,16 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture1);
+		glBindTexture(GL_TEXTURE_2D, textureIDs[texture1Index]);
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);
+		glBindTexture(GL_TEXTURE_2D, textureIDs[texture2Index]);
 
 		ImGui::Begin("Cubes!");
 		ImGui::Checkbox("Draw Cubes", &drawCubes);
 		ImGui::DragFloat3("Position", cubePosition, 0.01f, -FLT_MAX, FLT_MAX);
 		ImGui::DragFloat3("Rotation", cubeRotation, 0.01f, -FLT_MAX, FLT_MAX);
 
+		
 
 		if (ImGui::Button("Spawn Cube"))
 		{
@@ -240,7 +233,74 @@ int main()
 			}
 		}
 		ImGui::EndListBox();
-		
+		const char* comboPreviewValue = modelNames[currentModelIndex].c_str(); // Preview value
+		if (ImGui::BeginCombo("Select Model", comboPreviewValue))
+		{
+			for (int n = 0; n < modelNames.size(); n++)
+			{
+				const bool isSelected = (currentModelIndex == n);
+				if (ImGui::Selectable(modelNames[n].c_str(), isSelected))
+				{
+					currentModelIndex = n; // Update the current model index
+
+					if (modelNames[n] == "Flag")
+					{
+						currentObject = finalVerticesFlag;
+						currentBuffer = VAO1;
+					}
+					else if (modelNames[n] == "Cube")
+					{
+						currentObject = finalVerticesCube;
+						currentBuffer = VAO2;
+					}
+					// Load or switch to the selected model here
+					std::cout << "Switched to model: " << modelNames[n] << std::endl;
+				}
+
+				// Set the initial focus when opening the combo
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}    
+		const char* texture1Preview = textureNames[texture1Index].c_str();
+		if (ImGui::BeginCombo("Texture 1", texture1Preview))
+		{
+			for (int n = 0; n < textureNames.size(); n++)
+			{
+				const bool isSelected = (texture1Index == n);
+				if (ImGui::Selectable(textureNames[n].c_str(), isSelected))
+				{
+					texture1Index = n;
+					std::cout << "Switched Texture 1 to: " << textureNames[n] << std::endl;
+				}
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+
+		ImGui::SameLine(); // Place the next combo box next to the previous one
+
+		// Combo box for the second texture
+		const char* texture2Preview = textureNames[texture2Index].c_str();
+		if (ImGui::BeginCombo("Texture 2", texture2Preview))
+		{
+			for (int n = 0; n < textureNames.size(); n++)
+			{
+				const bool isSelected = (texture2Index == n);
+				if (ImGui::Selectable(textureNames[n].c_str(), isSelected))
+				{
+					texture2Index = n;
+					std::cout << "Switched Texture 2 to: " << textureNames[n] << std::endl;
+				}
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+
+		ImGui::SliderFloat("Texture Mixer", &textureMixer, 0.0f, 1.0f);
 		ImGui::SliderFloat("Spin Speed", &spinSpeed, 0.1f, 5.0f);
 		ImGui::End();
 
@@ -248,6 +308,7 @@ int main()
 		if (drawCubes)
 		{
 			ourShader.use();
+			ourShader.setFloat("textureMixer", textureMixer);
 
 			glm::mat4 view;
 
@@ -258,7 +319,7 @@ int main()
 			ourShader.setMat4("view", view);
 			ourShader.setMat4("projection", projection);
 
-			glBindVertexArray(VAO);
+			glBindVertexArray(currentBuffer);
 
 			// Render all entities
 			for (Entity* entity : entityManager.entities)
@@ -279,7 +340,7 @@ int main()
 					ourShader.setMat4("model", model);
 
 					//glDrawElements(GL_TRIANGLES, OBJpositionIndex.size(), GL_UNSIGNED_INT, 0);
-					glDrawArrays(GL_TRIANGLES, 0, (GLsizei)finalVertices.size());
+					glDrawArrays(GL_TRIANGLES, 0, (GLsizei)currentObject.size());
 				}
 			}
 		}
