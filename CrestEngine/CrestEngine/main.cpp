@@ -17,12 +17,84 @@
 
 #include "OBJLoader.h"
 
+#include <thread>
+#include <mutex>
+
 #include "Shader.h"
 #include "Entities.h"
 #include "Camera.h"
 #include "Time.h"
 #include "Input.h"
 #include "Texture.h"
+#include "MeshManager.h"
+#include <queue>
+#include <atomic>
+#include <condition_variable>
+#include <functional>
+
+// Global variables for threading
+std::thread resourceLoaderThread;
+std::mutex resourceMutex;
+std::condition_variable resourceCondition;
+std::atomic<bool> isResourceLoaded(false); // To track the loading status
+std::atomic<bool> stopLoading(false);      // To signal the loader thread to exit
+Mesh* loadedMesh = nullptr;               // Temporary storage for the loaded mesh
+
+void loadResourcesAsync(const std::string& filePath) {
+	Mesh* mesh = nullptr;
+
+	try {
+		// Load the mesh data
+		mesh = MeshManager::Get().loadOBJ(filePath);
+		std::cout << "Loaded " << mesh->vertices.size() / 3 << " vertices from " << filePath << std::endl;
+	}
+	catch (const std::exception& ex) {
+		std::cerr << "Error loading resource: " << ex.what() << std::endl;
+	}
+
+	// Safely update the shared resource
+	{
+		std::lock_guard<std::mutex> lock(resourceMutex);
+		loadedMesh = mesh;
+		isResourceLoaded = true;
+	}
+
+	// Notify the main thread
+	resourceCondition.notify_one();
+}
+void initializeResourceLoader() {
+	// Start the resource loading thread
+	stopLoading = false;
+	resourceLoaderThread = std::thread(loadResourcesAsync, "Flag.obj");
+}
+
+void finalizeResourceLoader() {
+	// Gracefully stop the thread if it's running
+	stopLoading = true;
+	if (resourceLoaderThread.joinable()) {
+		resourceLoaderThread.join();
+	}
+}
+void updateLoadedResources(unsigned int VBO, unsigned int VAO, unsigned int currentBuffer, std::vector<Vertex> currentObject) {
+	// Check if the resource is loaded and update it in the main thread
+	if (isResourceLoaded) {
+		std::lock_guard<std::mutex> lock(resourceMutex);
+		if (loadedMesh) {
+			// Bind and upload data to the appropriate VBO/VAO
+			glBindBuffer(GL_ARRAY_BUFFER, VBO); // Use your existing VBO1
+			glBufferData(GL_ARRAY_BUFFER, loadedMesh->vertices.size() * sizeof(Vertex), loadedMesh->vertices.data(), GL_STATIC_DRAW);
+
+			currentObject = loadedMesh->vertices;
+			currentBuffer = VAO; // Assuming VAO1 corresponds to this resource
+
+			std::cout << "Resource loaded and updated in the main thread." << std::endl;
+
+			// Clean up the temporary mesh pointer
+			loadedMesh = nullptr;
+		}
+		isResourceLoaded = false; // Reset the flag
+	}
+}
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -31,6 +103,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 int main() 
 {
 
+	#pragma region Initialization
 	if (!glfwInit())
 	{
 		std::cout << "Failed to initialize GLFW" << std::endl;
@@ -61,6 +134,9 @@ int main()
 	}
 	glEnable(GL_DEPTH_TEST);
 
+
+#pragma endregion 
+
 	Shader ourShader("firstshader.vs.txt", "firstshader.fs.txt");
 
 	
@@ -75,10 +151,14 @@ int main()
 	std::vector<Vertex> finalVerticesFlag;
 	std::vector<Vertex> currentObject;
 
-	OBJLoader::loadOBJ("Flag.obj", finalVerticesFlag);
-	OBJLoader::loadOBJ("Cube.obj", finalVerticesCube);
+	MeshManager::Allocate();
 
-	std::cout << "Loaded " << finalVerticesFlag.size() / 3 << " vertices." << std::endl;
+	Mesh* mesh;
+	mesh = MeshManager::Get().loadOBJ("Flag.obj");
+	//MeshManager::loadOBJ("Cube.obj");
+
+
+	std::cout << "Loaded " << mesh->vertices.size() / 3 << " vertices." << std::endl;
 	std::cout << "Loaded " << finalVerticesCube.size() / 3 << " vertices." << std::endl;
 
 
@@ -95,7 +175,7 @@ int main()
 	glBindVertexArray(VAO1);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO1);
-	glBufferData(GL_ARRAY_BUFFER, finalVerticesFlag.size() * sizeof(Vertex), finalVerticesFlag.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, mesh->vertices.size() * sizeof(Vertex), mesh->vertices.data(), GL_STATIC_DRAW);
 	
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
@@ -167,7 +247,7 @@ int main()
 	std::vector<std::string> modelNames = { "Flag", "Cube"};
 	int currentModelIndex = 0;
 	currentBuffer = VBO1;
-	currentObject = finalVerticesFlag;
+	currentObject = mesh->vertices;
 	
 	std::vector<std::string> textureNames = { "face.png", "jail.png", "Pride.png"};
 	std::vector<unsigned int> textureIDs = { texture1, texture2, texture3 };
@@ -176,10 +256,14 @@ int main()
 	int currentTextureIndex = 0; 
 	float textureMixer = 0.35f;
 
+	initializeResourceLoader();
+
 	while (!glfwWindowShouldClose(window))
 	{
 		Input::ActivateInput(window);
 		Time::DeltaTime();
+
+		updateLoadedResources(VBO1, VAO1, currentBuffer, currentObject);
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -249,13 +333,13 @@ int main()
 
 					if (modelNames[n] == "Flag")
 					{
-						currentObject = finalVerticesFlag;
-						currentBuffer = VAO1;
+						//currentObject = mesh->vertices;
+						//currentBuffer = VAO1;
 					}
 					else if (modelNames[n] == "Cube")
 					{
-						currentObject = finalVerticesCube;
-						currentBuffer = VAO2;
+						//currentObject = finalVerticesCube;
+						//currentBuffer = VAO2;
 					}
 					// Load or switch to the selected model here
 					std::cout << "Switched to model: " << modelNames[n] << std::endl;
@@ -356,7 +440,7 @@ int main()
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-
+	finalizeResourceLoader();
 
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
@@ -379,4 +463,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	{
 		Camera::SwitchCamera();
 	}
+}
+void loadResources() {
+
 }

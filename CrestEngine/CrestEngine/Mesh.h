@@ -13,5 +13,6 @@ struct Vertex {
 };
 
 struct Mesh {
-    std::list<Vertex*> vertices;
+    std::vector<Vertex> vertices;
+    std::string path;
 };

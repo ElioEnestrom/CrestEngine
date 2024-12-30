@@ -8,8 +8,8 @@
 
 namespace OBJLoader {
     // Function declaration
-    void loadOBJ(const std::string& filename,
-        std::vector<Vertex>& finalVertices);
+//    void loadOBJ(const std::string& filename,
+//        std::vector<Vertex>& finalVertices);
 }
 
 #endif // LOAD_OBJ_H
