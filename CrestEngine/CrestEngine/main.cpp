@@ -153,6 +153,7 @@ int main()
 
 	MeshManager::Allocate();
 
+	initializeResourceLoader();
 	Mesh* mesh;
 	mesh = MeshManager::Get().loadOBJ("Flag.obj");
 	//MeshManager::loadOBJ("Cube.obj");
@@ -175,7 +176,7 @@ int main()
 	glBindVertexArray(VAO1);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO1);
-	glBufferData(GL_ARRAY_BUFFER, mesh->vertices.size() * sizeof(Vertex), mesh->vertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, loadedMesh->vertices.size() * sizeof(Vertex), loadedMesh->vertices.data(), GL_STATIC_DRAW);
 	
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
@@ -247,7 +248,7 @@ int main()
 	std::vector<std::string> modelNames = { "Flag", "Cube"};
 	int currentModelIndex = 0;
 	currentBuffer = VBO1;
-	currentObject = mesh->vertices;
+	currentObject = loadedMesh->vertices;
 	
 	std::vector<std::string> textureNames = { "face.png", "jail.png", "Pride.png"};
 	std::vector<unsigned int> textureIDs = { texture1, texture2, texture3 };
@@ -256,7 +257,6 @@ int main()
 	int currentTextureIndex = 0; 
 	float textureMixer = 0.35f;
 
-	initializeResourceLoader();
 
 	while (!glfwWindowShouldClose(window))
 	{
