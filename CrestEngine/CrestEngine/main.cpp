@@ -33,76 +33,6 @@
 #include <functional>
 #include <map>
 
-// Global variables for threading
-std::thread resourceLoaderThread;
-std::mutex resourceMutex;
-std::condition_variable resourceCondition;
-std::atomic<bool> isResourceLoaded(false); // To track the loading status
-std::atomic<bool> stopLoading(false);      // To signal the loader thread to exit
-Mesh* loadedMesh = nullptr;               // Temporary storage for the loaded mesh
-std::string lastLoadedModel; 
-std::map<std::string, Mesh*> loadedMeshes;
-
-void loadModelAsync(const std::string& modelName, const std::string& filePath) {
-	try {
-		// Load the mesh data
-		Mesh* mesh = MeshManager::Get().loadOBJ(filePath);
-		std::cout << "Loaded " << mesh->vertices.size() / 3 << " vertices from " << filePath << std::endl;
-
-		// Safely store the loaded mesh
-		{
-			std::lock_guard<std::mutex> lock(resourceMutex);
-			loadedMeshes[modelName] = mesh; // Store the mesh by its name
-			lastLoadedModel = modelName;
-			isResourceLoaded = true;
-		}
-
-		// Notify the main thread
-		resourceCondition.notify_one();
-	}
-	catch (const std::exception& ex) {
-		std::cerr << "Error loading model: " << ex.what() << std::endl;
-	}
-}
-
-void initializeResourceLoader() {
-	// Start the resource loading thread
-	stopLoading = false;
-	resourceLoaderThread = std::thread(loadModelAsync, "Flag", "Flag.obj");
-}
-
-void finalizeResourceLoader() {
-	// Gracefully stop the thread if it's running
-	stopLoading = true;
-	if (resourceLoaderThread.joinable()) {
-		resourceLoaderThread.join();
-	}
-}
-void updateLoadedResources(unsigned int VBO, unsigned int VAO, unsigned int currentBuffer, std::vector<Vertex> currentObject) {
-	// Check if the resource is loaded and update it in the main thread
-	if (isResourceLoaded) {
-		std::lock_guard<std::mutex> lock(resourceMutex);
-
-		auto it = loadedMeshes.find(lastLoadedModel);
-
-		if (it != loadedMeshes.end()) {
-			Mesh* mesh = it->second;
-
-			// Bind and upload data to the appropriate VBO/VAO
-			glBindBuffer(GL_ARRAY_BUFFER, VBO); // Use your existing VBO1
-			glBufferData(GL_ARRAY_BUFFER, mesh->vertices.size() * sizeof(Vertex), mesh->vertices.data(), GL_STATIC_DRAW);
-
-			currentObject = mesh->vertices;
-			currentBuffer = VAO; // Assuming VAO1 corresponds to this resource
-
-			std::cout << "Updated buffers with model: " << lastLoadedModel << std::endl;
-
-			// Clean up the temporary mesh pointer
-			loadedMesh = nullptr;
-		}
-		isResourceLoaded = false; // Reset the flag
-	}
-}
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -161,14 +91,15 @@ int main()
 
 	MeshManager::Allocate();
 
-	//initializeResourceLoader();
 	Mesh* mesh;
 	mesh = MeshManager::Get().loadOBJ("Flag.obj");
-	//MeshManager::loadOBJ("Cube.obj");
+
+	Mesh* meshCube;
+	meshCube = MeshManager::Get().loadOBJ("Cube.obj");
 
 
 	std::cout << "Loaded " << mesh->vertices.size() / 3 << " vertices." << std::endl;
-	std::cout << "Loaded " << finalVerticesCube.size() / 3 << " vertices." << std::endl;
+	std::cout << "Loaded " << meshCube->vertices.size() / 3 << " vertices." << std::endl;
 
 
 	unsigned int VBO1, VBO2, VAO1, VAO2, EBO, positionBuffer, textureBuffer, normalBuffer, currentBuffer;
@@ -184,7 +115,7 @@ int main()
 	glBindVertexArray(VAO1);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO1);
-	glBufferData(GL_ARRAY_BUFFER, loadedMesh->vertices.size() * sizeof(Vertex), loadedMesh->vertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, mesh->vertices.size() * sizeof(Vertex), mesh->vertices.data(), GL_STATIC_DRAW);
 	
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
@@ -198,7 +129,7 @@ int main()
 	glBindVertexArray(VAO2);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-	glBufferData(GL_ARRAY_BUFFER, finalVerticesCube.size() * sizeof(Vertex), finalVerticesCube.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, meshCube->vertices.size() * sizeof(Vertex), meshCube->vertices.data(), GL_STATIC_DRAW);
 
 
 	//std::cout << OBJpositionIndex.size();
@@ -256,7 +187,7 @@ int main()
 	std::vector<std::string> modelNames = { "Flag", "Cube"};
 	int currentModelIndex = 0;
 	currentBuffer = VBO1;
-	currentObject = loadedMesh->vertices;
+	currentObject = mesh->vertices;
 	
 	std::vector<std::string> textureNames = { "face.png", "jail.png", "Pride.png"};
 	std::vector<unsigned int> textureIDs = { texture1, texture2, texture3 };
@@ -265,22 +196,12 @@ int main()
 	int currentTextureIndex = 0; 
 	float textureMixer = 0.35f;
 
-	std::vector<std::string> availableModels = { "Flag", "Cube" };
-	std::map<std::string, std::string> modelPaths = {
-		{"Flag", "Flag.obj"},
-		{"Cube", "Cube.obj"}
-	};
-
-	std::string currentModel = "Flag";
-
-
 
 	while (!glfwWindowShouldClose(window))
 	{
 		Input::ActivateInput(window);
 		Time::DeltaTime();
 
-		updateLoadedResources(VBO1, VAO1, currentBuffer, currentObject);
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -337,25 +258,35 @@ int main()
 			}
 			}
 		ImGui::EndListBox();
-		}
-		const char* comboPreviewValue = currentModel.c_str(); // Preview value
-		if (ImGui::BeginCombo("Select Model", comboPreviewValue)) {
-			for (const std::string& modelName : availableModels) {
-				const bool isSelected = (currentModel == modelName);
-				if (ImGui::Selectable(modelName.c_str(), isSelected)) {
-					if (currentModel != modelName) {
-						currentModel = modelName; // Update current model
+		}const char* comboPreviewValue = modelNames[currentModelIndex].c_str(); // Preview value
+		if (ImGui::BeginCombo("Select Model", comboPreviewValue))
+		{
+			for (int n = 0; n < modelNames.size(); n++)
+			{
+				const bool isSelected = (currentModelIndex == n);
+				if (ImGui::Selectable(modelNames[n].c_str(), isSelected))
+				{
+					currentModelIndex = n; // Update the current model index
 
-						// Launch a thread to load the selected model
-						std::thread loader(loadModelAsync, modelName, modelPaths[modelName]);
-						loader.detach();
+					if (modelNames[n] == "Flag")
+					{
+						currentObject = mesh->vertices;
+						currentBuffer = VAO1;
 					}
+					else if (modelNames[n] == "Cube")
+					{
+						currentObject = meshCube->vertices;
+						currentBuffer = VAO2;
+					}
+					// Load or switch to the selected model here
+					std::cout << "Switched to model: " << modelNames[n] << std::endl;
 				}
+
+				// Set the initial focus when opening the combo
 				if (isSelected)
 					ImGui::SetItemDefaultFocus();
 			}
 			ImGui::EndCombo();
-
 		}    
 		ImGui::PushItemWidth(100);
 		const char* texture1Preview = textureNames[texture1Index].c_str();
@@ -446,7 +377,6 @@ int main()
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-	//finalizeResourceLoader();
 
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
