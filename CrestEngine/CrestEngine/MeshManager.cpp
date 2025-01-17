@@ -4,11 +4,10 @@
 #include <sstream>
 #include <iostream>
 #include <list>
+#include <thread>
+#include <mutex>
 
 MeshManager* MeshManager::instance = nullptr;
-
-
-
 
 MeshManager::MeshManager() {
 
@@ -24,8 +23,6 @@ void MeshManager::Allocate() {
 MeshManager& MeshManager::Get() {
 	return *instance;
 }
-
-
 
 Mesh* MeshManager::loadOBJ(const std::string& filename)
 {
