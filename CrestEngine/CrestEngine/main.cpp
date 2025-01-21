@@ -196,6 +196,15 @@ int main()
 	int currentTextureIndex = 0; 
 	float textureMixer = 0.35f;
 
+	//std::thread messageThread([] {
+	//	while (true)
+	//	{
+	//		std::cout << "Hello from thread!" << std::endl;
+	//		std::this_thread::sleep_for(std::chrono::seconds(1));
+	//	}
+	//});
+
+	
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -381,6 +390,9 @@ int main()
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
+
+	// Join threads
+	//messageThread.join();
 
 	glfwTerminate();
 	return 0;
