@@ -12,18 +12,18 @@ Message::~Message()
 
 }
 
-void MessageHandler::ProcessMessage(Message* msg)
+void MessageHandler::ProcessMessage(Message* message)
 {
-	switch (msg->type)
+	switch (message->type)
 	{
 	case MessageType::String:
-		std::cout << msg->msg << std::endl;
+		std::cout << message->msg << std::endl;
 		break;
 	case MessageType::Mouse:
-		std::cout << "Mouse message: " << msg->msg << std::endl;
+		std::cout << "Mouse message: " << message->msg << std::endl;
 		break;
 	case MessageType::FloatMessage:
-		std::cout << "Float message: " << msg->msg << std::endl;
+		std::cout << "Float message: " << message->msg << std::endl;
 		break;
 	default:
 		break;
