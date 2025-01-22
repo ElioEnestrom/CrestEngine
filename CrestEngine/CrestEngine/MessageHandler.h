@@ -1,10 +1,7 @@
 #pragma once
 
 #include <string>
-
-namespace MessageHandler {
-	void ProcessMessage(Message* message);
-}
+#include <map>
 
 enum class MessageType {
 	String,
@@ -19,4 +16,25 @@ public:
 
 	MessageType type;
 	std::string msg;
+};
+
+class MessageHandler {
+public:
+	void ProcessMessage(Message* message);
+	static MessageHandler& Get();
+
+private:
+	static MessageHandler* instance;
+	//MessageHandler() {};
+};
+
+class MessageQueueClass {
+public:
+	void QueueMessage(Message* message);
+
+private:
+	void ProcessMessages();
+	void ProcessMessage(Message* message);
+
+	std::map<int, Message*> messageQueue;
 };

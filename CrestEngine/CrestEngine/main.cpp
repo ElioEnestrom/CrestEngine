@@ -27,6 +27,7 @@
 #include "Input.h"
 #include "Texture.h"
 #include "MeshManager.h"
+#include "MessageHandler.h"
 #include <queue>
 #include <atomic>
 #include <condition_variable>
@@ -229,7 +230,7 @@ int main()
 		ImGui::DragFloat3("Position", cubePosition, 0.01f, -FLT_MAX, FLT_MAX);
 		ImGui::DragFloat3("Rotation", cubeRotation, 0.01f, -FLT_MAX, FLT_MAX);
 
-		
+		MessageHandler::Get().ProcessMessage(new Message(MessageType::String, "Hello, World!"));
 
 		if (ImGui::Button("Spawn Cube"))
 		{

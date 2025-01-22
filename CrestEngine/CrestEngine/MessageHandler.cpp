@@ -1,11 +1,22 @@
 #include "MessageHandler.h"
 #include <iostream>
+#include <map>
+
+MessageHandler* MessageHandler::instance = nullptr;
+
+MessageHandler& MessageHandler::Get()
+{
+	if (instance == nullptr)
+	{
+		instance = new MessageHandler();
+	}
+	return *instance;
+}
 
 Message::Message(MessageType inType, std::string inMsg) : type(inType), msg(inMsg)
 {
-	
-}
 
+}
 
 Message::~Message()
 {
@@ -29,3 +40,10 @@ void MessageHandler::ProcessMessage(Message* message)
 		break;
 	}
 }
+
+//int main()
+//{
+//	MessageHandler::Get().ProcessMessage(new Message(MessageType::String, "Hello, World!"));
+//	MessageHandler::Get().ProcessMessage(new Message(MessageType::Mouse, "Mouse message"));
+//	MessageHandler::Get().ProcessMessage(new Message(MessageType::FloatMessage, "Float message"));
+//}
