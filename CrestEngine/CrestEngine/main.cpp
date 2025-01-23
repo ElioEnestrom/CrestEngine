@@ -28,6 +28,7 @@
 #include "Texture.h"
 #include "MeshManager.h"
 #include "MessageHandler.h"
+#include "MessageQueue.h"
 #include <queue>
 #include <atomic>
 #include <condition_variable>
@@ -93,10 +94,12 @@ int main()
 	MeshManager::Allocate();
 
 	Mesh* mesh;
-	mesh = MeshManager::Get().loadOBJ("Flag.obj");
+	mesh = MeshManager::Get().ProcessMessage(new Message(MessageType::Object, "Flag.obj"));
 
 	Mesh* meshCube;
-	meshCube = MeshManager::Get().loadOBJ("Cube.obj");
+	meshCube = MeshManager::Get().ProcessMessage(new Message(MessageType::Object, "Cube.obj"));
+
+	
 
 
 	std::cout << "Loaded " << mesh->vertices.size() / 3 << " vertices." << std::endl;
@@ -230,7 +233,7 @@ int main()
 		ImGui::DragFloat3("Position", cubePosition, 0.01f, -FLT_MAX, FLT_MAX);
 		ImGui::DragFloat3("Rotation", cubeRotation, 0.01f, -FLT_MAX, FLT_MAX);
 
-		MessageHandler::Get().ProcessMessage(new Message(MessageType::String, "Hello, World!"));
+		//MessageQueue::QueueMessage(new Message(MessageType::String, "Hello, World!"));
 
 		if (ImGui::Button("Spawn Cube"))
 		{

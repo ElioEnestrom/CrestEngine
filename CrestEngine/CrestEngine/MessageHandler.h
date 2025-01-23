@@ -6,6 +6,7 @@
 enum class MessageType {
 	String,
 	Mouse,
+	Object,
 	FloatMessage
 };
 
@@ -26,15 +27,4 @@ public:
 private:
 	static MessageHandler* instance;
 	//MessageHandler() {};
-};
-
-class MessageQueueClass {
-public:
-	void QueueMessage(Message* message);
-
-private:
-	void ProcessMessages();
-	void ProcessMessage(Message* message);
-
-	std::map<int, Message*> messageQueue;
 };

@@ -24,6 +24,22 @@ MeshManager& MeshManager::Get() {
 	return *instance;
 }
 
+Mesh* MeshManager::ProcessMessage(Message* message)
+{
+	std::string msg = message->msg;
+	switch(message->type) {
+	    case MessageType::Object:
+	    	if (msg == "Flag.obj" || msg == "Cube.obj") {
+	    		std::string filename = message->msg;
+	    		return loadOBJ(filename);
+	    	}
+	        else {
+	    		std::cerr << "Unknown message: " << msg << std::endl;
+	        }
+	    break;
+	}
+}
+
 Mesh* MeshManager::loadOBJ(const std::string& filename)
 {
     std::vector<float> vertices;
