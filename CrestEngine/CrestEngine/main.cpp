@@ -93,49 +93,98 @@ int main()
 
 	MeshManager::Allocate();
 
-	Mesh* mesh;
-	mesh = MeshManager::Get().ProcessMessage(new Message(MessageType::Object, "Flag.obj"));
+	Mesh* mesh = nullptr;
+	MeshManager::Get().ProcessMessage(new Message(MessageType::Object, "Flag.obj"));
 
-	Mesh* meshCube;
-	meshCube = MeshManager::Get().ProcessMessage(new Message(MessageType::Object, "Cube.obj"));
-
-	
+	Mesh* meshCube = nullptr;
+	MeshManager::Get().ProcessMessage(new Message(MessageType::Object, "Cube.obj"));
 
 
-	std::cout << "Loaded " << mesh->vertices.size() / 3 << " vertices." << std::endl;
-	std::cout << "Loaded " << meshCube->vertices.size() / 3 << " vertices." << std::endl;
 
 
-	unsigned int VBO1, VBO2, VAO1, VAO2, EBO, positionBuffer, textureBuffer, normalBuffer, currentBuffer;
-	glGenVertexArrays(1, &VAO1);
-	glGenVertexArrays(1, &VAO2);
-	glGenBuffers(1, &VBO1);
-	glGenBuffers(1, &VBO2);
+	unsigned int EBO, positionBuffer, textureBuffer, normalBuffer, currentBuffer;
 	glGenBuffers(1, &EBO);
 	glGenBuffers(1, &positionBuffer);
 	glGenBuffers(1, &textureBuffer);
 	glGenBuffers(1, &normalBuffer);
 
-	glBindVertexArray(VAO1);
+	std::unordered_map<std::string, Mesh*> meshMap;
+	for (auto& mesh : MeshManager::Get().meshList)
+	{
+		meshMap[mesh->path] = mesh;
+	}
+	std::unordered_map<unsigned int, unsigned int> VBOs;
+	std::unordered_map<unsigned int, unsigned int> VAOs;
+	for (auto& currentMesh : MeshManager::Get().meshList)
+	{
+		unsigned int VAO;
+		unsigned int VBO;
+		glGenVertexArrays(1, &VAO);
+		glGenBuffers(1, &VBO);
+		glBindVertexArray(VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferData(GL_ARRAY_BUFFER, currentMesh->vertices.size() * sizeof(Vertex), currentMesh->vertices.data(), GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(5 * sizeof(float)));
+		glEnableVertexAttribArray(2);
+		VAOs[currentMesh->id] = VAO;
+		VBOs[currentMesh->id] = VBO; 
+		//meshMap[(currentMesh)->path]
+		
+		if ((currentMesh)->path == "Flag.obj") {
+			mesh = currentMesh;
+		}
+		else if ((currentMesh)->path == "Cube.obj") {
+			meshCube = currentMesh;
+		}
+	}
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO1);
-	glBufferData(GL_ARRAY_BUFFER, mesh->vertices.size() * sizeof(Vertex), mesh->vertices.data(), GL_STATIC_DRAW);
+	//for (auto currentMesh = MeshManager::Get().meshList.begin(); currentMesh != MeshManager::Get().meshList.end(); currentMesh++)
+	//{
+	//	if ((*currentMesh)->path == "Flag.obj")
+	//	{
+	//		mesh = *currentMesh;
+	//		std::cout << "Loaded " << mesh->vertices.size() / 3 << " vertices." << std::endl;
+	//
+	//		glBindVertexArray(VAO1);
+	//
+	//		glBindBuffer(GL_ARRAY_BUFFER, VBO1);
+	//		glBufferData(GL_ARRAY_BUFFER, meshMap[(*currentMesh)->path]->vertices.size() * sizeof(Vertex), meshMap[(*currentMesh)->path]->vertices.data(), GL_STATIC_DRAW);
+	//		
+	//		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+	//		glEnableVertexAttribArray(0);
+	//		// texture coord attribute
+	//		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
+	//		glEnableVertexAttribArray(1);
+	//
+	//		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(5 * sizeof(float)));
+	//		glEnableVertexAttribArray(2);
+	//	}
+	//	else if ((*currentMesh)->path == "Cube.obj")
+	//	{
+	//		meshCube = *currentMesh;
+	//		std::cout << "Loaded " << meshCube->vertices.size() / 3 << " vertices." << std::endl;
+	//		
+	//		glBindVertexArray(VAO2);
+	//
+	//		glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+	//		glBufferData(GL_ARRAY_BUFFER, meshMap[(*currentMesh)->path]->vertices.size() * sizeof(Vertex), meshMap[(*currentMesh)->path]->vertices.data(), GL_STATIC_DRAW);
+	//
+	//		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+	//		glEnableVertexAttribArray(0);
+	//		// texture coord attribute
+	//		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
+	//		glEnableVertexAttribArray(1);
+	//
+	//		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(5 * sizeof(float)));
+	//		glEnableVertexAttribArray(2);
+	//	}
+	//}
+
 	
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-    glEnableVertexAttribArray(0);
-    // texture coord attribute
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(5 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-	glBindVertexArray(VAO2);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-	glBufferData(GL_ARRAY_BUFFER, meshCube->vertices.size() * sizeof(Vertex), meshCube->vertices.data(), GL_STATIC_DRAW);
-
-
 	//std::cout << OBJpositionIndex.size();
 	//
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -144,14 +193,7 @@ int main()
 	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, OBJtextureIndex.size() * sizeof(unsigned int), OBJtextureIndex.data(), GL_STATIC_DRAW);
 
 	
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-    glEnableVertexAttribArray(0);
-    // texture coord attribute
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(5 * sizeof(float)));
-    glEnableVertexAttribArray(2);
+   
 
 	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(6 * sizeof(float)));
 	//glEnableVertexAttribArray(2);
@@ -174,7 +216,7 @@ int main()
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 	// Setup Platform/Renderer backends
 	ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
-	ImGui_ImplOpenGL3_Init();
+	ImGui_ImplOpenGL3_Init("#version 330");
 
 	bool drawCubes = true;
 	float xLocation = 0;
@@ -189,9 +231,14 @@ int main()
 	glfwSetKeyCallback(window, key_callback);
 
 	std::vector<std::string> modelNames = { "Flag", "Cube"};
-	int currentModelIndex = 0;
-	currentBuffer = VBO1;
-	currentObject = mesh->vertices;
+	int currentModelIndex = 0; 
+	if (mesh != nullptr) {
+		currentBuffer = VAOs[mesh->id];
+		currentObject = mesh->vertices;
+	}
+	else {
+		std::cerr << "Error: 'mesh' is NULL." << std::endl;
+	}
 	
 	std::vector<std::string> textureNames = { "face.png", "jail.png", "Pride.png"};
 	std::vector<unsigned int> textureIDs = { texture1, texture2, texture3 };
@@ -284,12 +331,12 @@ int main()
 					if (modelNames[n] == "Flag")
 					{
 						currentObject = mesh->vertices;
-						currentBuffer = VAO1;
+						currentBuffer = VAOs[mesh->id];
 					}
 					else if (modelNames[n] == "Cube")
 					{
 						currentObject = meshCube->vertices;
-						currentBuffer = VAO2;
+						currentBuffer = VAOs[meshCube->id];
 					}
 					// Load or switch to the selected model here
 					std::cout << "Switched to model: " << modelNames[n] << std::endl;

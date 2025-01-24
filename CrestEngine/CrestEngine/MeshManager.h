@@ -10,12 +10,14 @@ class MeshManager {
 public:
 	static void Allocate();
 	static MeshManager& Get();
-	Mesh* ProcessMessage(Message* message);
+	void ProcessMessage(Message* message);
 
-	static Mesh* loadOBJ(const std::string& filename);
+	static void* loadOBJ(const std::string& filename);
 	Mesh* GetMesh(std::string filename);
 
 	std::list<Mesh*> meshList;
+
+	unsigned int id;
 private:
 	static MeshManager* instance;
 };

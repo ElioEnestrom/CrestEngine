@@ -33,6 +33,9 @@ void MessageHandler::ProcessMessage(Message* message)
 	case MessageType::Mouse:
 		std::cout << "Mouse message: " << message->msg << std::endl;
 		break;
+	case MessageType::Object:
+		std::cout << "Object message: " << message->msg << std::endl;
+		break;
 	case MessageType::FloatMessage:
 		std::cout << "Float message: " << message->msg << std::endl;
 		break;

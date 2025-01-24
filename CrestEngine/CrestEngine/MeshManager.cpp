@@ -8,6 +8,7 @@
 #include <mutex>
 
 MeshManager* MeshManager::instance = nullptr;
+unsigned int id;
 
 MeshManager::MeshManager() {
 
@@ -24,14 +25,14 @@ MeshManager& MeshManager::Get() {
 	return *instance;
 }
 
-Mesh* MeshManager::ProcessMessage(Message* message)
+void MeshManager::ProcessMessage(Message* message)
 {
 	std::string msg = message->msg;
 	switch(message->type) {
 	    case MessageType::Object:
 	    	if (msg == "Flag.obj" || msg == "Cube.obj") {
 	    		std::string filename = message->msg;
-	    		return loadOBJ(filename);
+	    		loadOBJ(filename);
 	    	}
 	        else {
 	    		std::cerr << "Unknown message: " << msg << std::endl;
@@ -40,7 +41,7 @@ Mesh* MeshManager::ProcessMessage(Message* message)
 	}
 }
 
-Mesh* MeshManager::loadOBJ(const std::string& filename)
+void* MeshManager::loadOBJ(const std::string& filename)
 {
     std::vector<float> vertices;
     std::vector<float> normals;
@@ -176,7 +177,8 @@ Mesh* MeshManager::loadOBJ(const std::string& filename)
         vertexIndex.push_back(static_cast<unsigned int>(normalIndex[i]));
     }
     MeshManager::Get().meshList.push_back(newMesh);
-    return newMesh;
+	newMesh->id = MeshManager::Get().id;
+    MeshManager::Get().id++;
 }
 
 Mesh* MeshManager::GetMesh(std::string filename)

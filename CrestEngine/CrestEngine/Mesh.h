@@ -15,4 +15,5 @@ struct Vertex {
 struct Mesh {
     std::vector<Vertex> vertices;
     std::string path;
+    unsigned int id;
 };
