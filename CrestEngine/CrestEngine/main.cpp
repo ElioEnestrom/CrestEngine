@@ -16,6 +16,7 @@
 #include "stb_image.h"
 
 #include "OBJLoader.h"
+#include "ImguiManager.h"
 
 #include <thread>
 #include <mutex>
@@ -93,28 +94,20 @@ int main()
 
 	MeshManager::Allocate();
 
-	Mesh* mesh = nullptr;
-	MeshManager::Get().ProcessMessage(new Message(MessageType::Object, "Flag.obj"));
+	unsigned int currentBuffer = 0;
 
-	Mesh* meshCube = nullptr;
+	MeshManager::Get().ProcessMessage(new Message(MessageType::Object, "Flag.obj"));
 	MeshManager::Get().ProcessMessage(new Message(MessageType::Object, "Cube.obj"));
 
-
-
-
-	unsigned int EBO, positionBuffer, textureBuffer, normalBuffer, currentBuffer;
-	glGenBuffers(1, &EBO);
-	glGenBuffers(1, &positionBuffer);
-	glGenBuffers(1, &textureBuffer);
-	glGenBuffers(1, &normalBuffer);
-
 	std::unordered_map<std::string, Mesh*> meshMap;
+	std::unordered_map<unsigned int, unsigned int> VBOs;
+	std::unordered_map<unsigned int, unsigned int> VAOs;
+
 	for (auto& mesh : MeshManager::Get().meshList)
 	{
 		meshMap[mesh->path] = mesh;
 	}
-	std::unordered_map<unsigned int, unsigned int> VBOs;
-	std::unordered_map<unsigned int, unsigned int> VAOs;
+
 	for (auto& currentMesh : MeshManager::Get().meshList)
 	{
 		unsigned int VAO;
@@ -124,79 +117,19 @@ int main()
 		glBindVertexArray(VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, currentMesh->vertices.size() * sizeof(Vertex), currentMesh->vertices.data(), GL_STATIC_DRAW);
+
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(5 * sizeof(float)));
 		glEnableVertexAttribArray(2);
+
 		VAOs[currentMesh->id] = VAO;
 		VBOs[currentMesh->id] = VBO; 
 		//meshMap[(currentMesh)->path]
-		
-		if ((currentMesh)->path == "Flag.obj") {
-			mesh = currentMesh;
-		}
-		else if ((currentMesh)->path == "Cube.obj") {
-			meshCube = currentMesh;
-		}
 	}
 
-	//for (auto currentMesh = MeshManager::Get().meshList.begin(); currentMesh != MeshManager::Get().meshList.end(); currentMesh++)
-	//{
-	//	if ((*currentMesh)->path == "Flag.obj")
-	//	{
-	//		mesh = *currentMesh;
-	//		std::cout << "Loaded " << mesh->vertices.size() / 3 << " vertices." << std::endl;
-	//
-	//		glBindVertexArray(VAO1);
-	//
-	//		glBindBuffer(GL_ARRAY_BUFFER, VBO1);
-	//		glBufferData(GL_ARRAY_BUFFER, meshMap[(*currentMesh)->path]->vertices.size() * sizeof(Vertex), meshMap[(*currentMesh)->path]->vertices.data(), GL_STATIC_DRAW);
-	//		
-	//		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-	//		glEnableVertexAttribArray(0);
-	//		// texture coord attribute
-	//		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
-	//		glEnableVertexAttribArray(1);
-	//
-	//		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(5 * sizeof(float)));
-	//		glEnableVertexAttribArray(2);
-	//	}
-	//	else if ((*currentMesh)->path == "Cube.obj")
-	//	{
-	//		meshCube = *currentMesh;
-	//		std::cout << "Loaded " << meshCube->vertices.size() / 3 << " vertices." << std::endl;
-	//		
-	//		glBindVertexArray(VAO2);
-	//
-	//		glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-	//		glBufferData(GL_ARRAY_BUFFER, meshMap[(*currentMesh)->path]->vertices.size() * sizeof(Vertex), meshMap[(*currentMesh)->path]->vertices.data(), GL_STATIC_DRAW);
-	//
-	//		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-	//		glEnableVertexAttribArray(0);
-	//		// texture coord attribute
-	//		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
-	//		glEnableVertexAttribArray(1);
-	//
-	//		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(5 * sizeof(float)));
-	//		glEnableVertexAttribArray(2);
-	//	}
-	//}
-
-	
-	//std::cout << OBJpositionIndex.size();
-	//
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, OBJpositionIndex.size() * sizeof(unsigned int), OBJpositionIndex.data(), GL_STATIC_DRAW);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, OBJnormalIndex.size() * sizeof(unsigned int), OBJnormalIndex.data(), GL_STATIC_DRAW);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, OBJtextureIndex.size() * sizeof(unsigned int), OBJtextureIndex.data(), GL_STATIC_DRAW);
-
-	
-   
-
-	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(6 * sizeof(float)));
-	//glEnableVertexAttribArray(2);
 
 	unsigned int texture1 = Texture::loadTexture("face.png");
 
@@ -218,27 +151,25 @@ int main()
 	ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
 	ImGui_ImplOpenGL3_Init("#version 330");
 
-	bool drawCubes = true;
 	float xLocation = 0;
 	float yLocation = 0;
 	//glm::mat4 trans = glm::mat4(1.0f);
 
 	EntityManager entityManager;
 	Entity* currentlySelected = nullptr;
-	float cubePosition[3] = { 0, -5, -10.0f};
-	float cubeRotation[3] = { 0, 0, 0};
+	bool drawCubes = true;
+	float cubePosition[3] = { 0, -5, -10.0f };
+	float cubeRotation[3] = { 0, 0, 0 };
 
-	glfwSetKeyCallback(window, key_callback);
+	std::vector<std::string> modelNames;
+	for (auto& mesh : MeshManager::Get().meshList) {
+		modelNames.push_back(mesh->path);
+	}
 
-	std::vector<std::string> modelNames = { "Flag", "Cube"};
 	int currentModelIndex = 0; 
-	if (mesh != nullptr) {
-		currentBuffer = VAOs[mesh->id];
-		currentObject = mesh->vertices;
-	}
-	else {
-		std::cerr << "Error: 'mesh' is NULL." << std::endl;
-	}
+	
+	currentBuffer = VAOs[meshMap["Flag.obj"]->id];
+	currentObject = meshMap["Flag.obj"]->vertices;
 	
 	std::vector<std::string> textureNames = { "face.png", "jail.png", "Pride.png"};
 	std::vector<unsigned int> textureIDs = { texture1, texture2, texture3 };
@@ -247,6 +178,7 @@ int main()
 	int currentTextureIndex = 0; 
 	float textureMixer = 0.35f;
 
+	glfwSetKeyCallback(window, key_callback);
 	//std::thread messageThread([] {
 	//	while (true)
 	//	{
@@ -255,17 +187,11 @@ int main()
 	//	}
 	//});
 
-	
-
 	while (!glfwWindowShouldClose(window))
 	{
 		Input::ActivateInput(window);
 		Time::DeltaTime();
 
-
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
 
 		glClearColor(0.4, 0.3, 0.2, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -275,122 +201,25 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, textureIDs[texture2Index]);
 
-		ImGui::Begin("Cubes!");
-		ImGui::Checkbox("Draw Cubes", &drawCubes);
-		ImGui::DragFloat3("Position", cubePosition, 0.01f, -FLT_MAX, FLT_MAX);
-		ImGui::DragFloat3("Rotation", cubeRotation, 0.01f, -FLT_MAX, FLT_MAX);
+		ImguiManager imguiManager;
+		imguiManager.UpdateImGui(
+			drawCubes, 
+			cubePosition, 
+			cubeRotation, 
+			entityManager, 
+			currentlySelected, 
+			modelNames, 
+			currentModelIndex, 
+			currentObject, 
+			meshMap, 
+			currentBuffer, 
+			VAOs, 
+			textureNames, 
+			texture1Index, 
+			texture2Index, 
+			textureMixer);
 
 		//MessageQueue::QueueMessage(new Message(MessageType::String, "Hello, World!"));
-
-		if (ImGui::Button("Spawn Cube"))
-		{
-			// Create a new entity and set its position
-			Entity* newEntity = entityManager.CreateEntity(); 
-			newEntity->position = glm::vec3(0, -5.f, -20.f);
-
-			//std::cout << &currentlySelected->name[0];
-			//std::cout << std::to_string(entityManager.entities.size());
-			//std::cout << newEntity->name.c_str();
-		}
-		//ImGui::InputText("Name", &currentlySelected->name[0], currentlySelected->name.size());
-		ImGui::Text("Currently Selected: %s", currentlySelected ? currentlySelected->name.c_str() : "None");
-
-		if (ImGui::BeginListBox("Scene View", { 80, 200 }))
-		{
-
-			for (Entity* entity : entityManager.entities)
-		{
-			bool isSelected = entity == currentlySelected;
-			if (ImGui::Selectable(entity->name.c_str(), isSelected))
-			{
-				if (currentlySelected != entity) 
-				{
-					cubePosition[0] = { entity->position.x };
-					cubePosition[1] = { entity->position.y };
-					cubePosition[2] = { entity->position.z };
-					cubeRotation[0] = { entity->rotation.x };
-					cubeRotation[1] = { entity->rotation.y };
-					cubeRotation[2] = { entity->rotation.z };
-				}
-				currentlySelected = entity; 
-				//std::cout << currentlySelected->name.c_str();
-
-			}
-			}
-		ImGui::EndListBox();
-		}const char* comboPreviewValue = modelNames[currentModelIndex].c_str(); // Preview value
-		if (ImGui::BeginCombo("Select Model", comboPreviewValue))
-		{
-			for (int n = 0; n < modelNames.size(); n++)
-			{
-				const bool isSelected = (currentModelIndex == n);
-				if (ImGui::Selectable(modelNames[n].c_str(), isSelected))
-				{
-					currentModelIndex = n; // Update the current model index
-
-					if (modelNames[n] == "Flag")
-					{
-						currentObject = mesh->vertices;
-						currentBuffer = VAOs[mesh->id];
-					}
-					else if (modelNames[n] == "Cube")
-					{
-						currentObject = meshCube->vertices;
-						currentBuffer = VAOs[meshCube->id];
-					}
-					// Load or switch to the selected model here
-					std::cout << "Switched to model: " << modelNames[n] << std::endl;
-				}
-
-				// Set the initial focus when opening the combo
-				if (isSelected)
-					ImGui::SetItemDefaultFocus();
-			}
-			ImGui::EndCombo();
-		}    
-		ImGui::PushItemWidth(100);
-		const char* texture1Preview = textureNames[texture1Index].c_str();
-		if (ImGui::BeginCombo("Texture 1", texture1Preview))
-		{
-			for (int n = 0; n < textureNames.size(); n++)
-			{
-				const bool isSelected = (texture1Index == n);
-				if (ImGui::Selectable(textureNames[n].c_str(), isSelected))
-				{
-					texture1Index = n;
-					std::cout << "Switched Texture 1 to: " << textureNames[n] << std::endl;
-				}
-				if (isSelected)
-					ImGui::SetItemDefaultFocus();
-			}
-			ImGui::EndCombo();
-		}
-		ImGui::PopItemWidth();
-
-		ImGui::SameLine(); // Place the next combo box next to the previous one
-
-		// Combo box for the second texture
-		ImGui::PushItemWidth(100);
-		const char* texture2Preview = textureNames[texture2Index].c_str();
-		if (ImGui::BeginCombo("Texture 2", texture2Preview))
-		{
-			for (int n = 0; n < textureNames.size(); n++)
-			{
-				const bool isSelected = (texture2Index == n);
-				if (ImGui::Selectable(textureNames[n].c_str(), isSelected))
-				{
-					texture2Index = n;
-					std::cout << "Switched Texture 2 to: " << textureNames[n] << std::endl;
-				}
-				if (isSelected)
-					ImGui::SetItemDefaultFocus();
-			}
-			ImGui::EndCombo();
-		}
-		ImGui::PopItemWidth();
-
-		ImGui::SliderFloat("Texture Mixer", &textureMixer, 0.0f, 1.0f);
-		ImGui::End();
 
 
 		if (drawCubes)
