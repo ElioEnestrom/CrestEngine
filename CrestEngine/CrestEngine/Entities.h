@@ -8,9 +8,15 @@
 
 struct Entity {
 	std::string name;
-	glm::mat4 transform;
+	std::string model;
+	//glm::mat4 transform;
 	glm::vec3 position;
 	glm::vec3 rotation;
+	float entityPosition[3];
+	float entityRotation[3];
+	float textureMixer;
+	int textureIndex1;
+	int textureIndex2;
 	//Component component;
 	//std::string modelSrc;
 	//std::string textureSrc;

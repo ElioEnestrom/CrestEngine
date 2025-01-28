@@ -9,8 +9,6 @@
 
 void ImguiManager::UpdateImGui(
 	bool drawCubes, 
-	float* cubePosition, 
-	float* cubeRotation, 
 	EntityManager& entityManager, 
 	Entity*& currentlySelected, 
 	std::vector<std::string>& modelNames,
@@ -33,110 +31,128 @@ void ImguiManager::UpdateImGui(
 
 	ImGui::Begin("Cubes!");
 	ImGui::Checkbox("Draw Cubes", &drawCubes);
-	ImGui::DragFloat3("Position", cubePosition, 0.01f, -FLT_MAX, FLT_MAX);
-	ImGui::DragFloat3("Rotation", cubeRotation, 0.01f, -FLT_MAX, FLT_MAX);
 
-
-	if (ImGui::Button("Spawn Cube"))
+	if (ImGui::Button("Spawn Object"))
 	{
 		// Create a new entity and set its position
 		Entity* newEntity = entityManager.CreateEntity();
-		newEntity->position = glm::vec3(0, -5.f, -20.f);
+		currentlySelected = newEntity;
 
 		//std::cout << &currentlySelected->name[0];
 		//std::cout << std::to_string(entityManager.entities.size());
 		//std::cout << newEntity->name.c_str();
 	}
+	ImGui::SameLine();
+	if (ImGui::Button("Delete Object"))
+	{
+		if (currentlySelected)
+		{
+			entityManager.DeleteEntity(currentlySelected);
+			currentlySelected = nullptr;
+		}
+		else
+		{
+			std::cout << "No entity selected to delete." << std::endl;
+		}
+	}
 	//ImGui::InputText("Name", &currentlySelected->name[0], currentlySelected->name.size());
 	ImGui::Text("Currently Selected: %s", currentlySelected ? currentlySelected->name.c_str() : "None");
 
-	if (ImGui::BeginListBox("Scene View", { 80, 200 }))
-	{
-		for (Entity* entity : entityManager.entities)
+	if (currentlySelected) {
+
+		if (ImGui::BeginListBox("Scene View", { 80, 200 }))
 		{
-			bool isSelected = entity == currentlySelected;
-			if (ImGui::Selectable(entity->name.c_str(), isSelected))
+			for (Entity* entity : entityManager.entities)
 			{
-				if (currentlySelected != entity)
+				bool isSelected = entity == currentlySelected;
+				if (ImGui::Selectable(entity->name.c_str(), isSelected))
 				{
-					cubePosition[0] = { entity->position.x };
-					cubePosition[1] = { entity->position.y };
-					cubePosition[2] = { entity->position.z };
-					cubeRotation[0] = { entity->rotation.x };
-					cubeRotation[1] = { entity->rotation.y };
-					cubeRotation[2] = { entity->rotation.z };
+					currentlySelected = entity;
+					//std::cout << currentlySelected->name.c_str();
 				}
-				currentlySelected = entity;
-				//std::cout << currentlySelected->name.c_str();
 			}
+			ImGui::EndListBox();
 		}
-		ImGui::EndListBox();
-	}const char* comboPreviewValue = modelNames[currentModelIndex].c_str(); // Preview value
-	if (ImGui::BeginCombo("Select Model", comboPreviewValue))
-	{
-		for (int n = 0; n < modelNames.size(); n++)
+
+
+
+		ImGui::InputText("Name", &currentlySelected->name[0], currentlySelected->name.size() + 1);
+		ImGui::DragFloat3("Position", currentlySelected->entityPosition, 0.01f, -FLT_MAX, FLT_MAX);
+		ImGui::DragFloat3("Rotation", currentlySelected->entityRotation, 0.01f, -FLT_MAX, FLT_MAX);
+
+		const char* comboPreviewValue = modelNames[currentModelIndex].c_str(); // Preview value
+		if (ImGui::BeginCombo("Select Model", comboPreviewValue))
 		{
-			const bool isSelected = (currentModelIndex == n);
-			if (ImGui::Selectable(modelNames[n].c_str(), isSelected))
+			for (int n = 0; n < modelNames.size(); n++)
 			{
-				currentModelIndex = n; // Update the current model index
+				const bool isSelected = (currentModelIndex == n);
+				if (ImGui::Selectable(modelNames[n].c_str(), isSelected))
+				{
+					currentModelIndex = n; // Update the current model index
 
-				currentObject = meshMap[modelNames[n]]->vertices;
-				currentBuffer = VAOs[meshMap[modelNames[n]]->id];
+					if (currentlySelected)
+					{
+						currentlySelected->model = modelNames[n]; // Update the model of the currently selected entity
+					}
+					else
+					{
+						std::cout << "No entity selected to change model." << std::endl;
+					}
 
-				// Load or switch to the selected model here
-				std::cout << "Switched to model: " << modelNames[n] << std::endl;
+					// Load or switch to the selected model here
+					std::cout << "Switched to model: " << modelNames[n] << std::endl;
+				}
+
+				// Set the initial focus when opening the combo
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
 			}
-
-			// Set the initial focus when opening the combo
-			if (isSelected)
-				ImGui::SetItemDefaultFocus();
+			ImGui::EndCombo();
 		}
-		ImGui::EndCombo();
-	}
 
-	ImGui::PushItemWidth(100);
-	const char* texture1Preview = textureNames[texture1Index].c_str();
-	if (ImGui::BeginCombo("Texture 1", texture1Preview))
-	{
-		for (int n = 0; n < textureNames.size(); n++)
+		ImGui::PushItemWidth(100);
+		const char* texture1Preview = textureNames[currentlySelected->textureIndex1].c_str();
+		if (ImGui::BeginCombo("Texture 1", texture1Preview))
 		{
-			const bool isSelected = (texture1Index == n);
-			if (ImGui::Selectable(textureNames[n].c_str(), isSelected))
+			for (int n = 0; n < textureNames.size(); n++)
 			{
-				texture1Index = n;
-				std::cout << "Switched Texture 1 to: " << textureNames[n] << std::endl;
+				const bool isSelected = (currentlySelected->textureIndex1 == n);
+				if (ImGui::Selectable(textureNames[n].c_str(), isSelected))
+				{
+					currentlySelected->textureIndex1 = n;
+					std::cout << "Switched Texture 1 to: " << textureNames[n] << std::endl;
+				}
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
 			}
-			if (isSelected)
-				ImGui::SetItemDefaultFocus();
+			ImGui::EndCombo();
 		}
-		ImGui::EndCombo();
-	}
-	ImGui::PopItemWidth();
+		ImGui::PopItemWidth();
 
-	ImGui::SameLine(); // Place the next combo box next to the previous one
+		ImGui::SameLine(); // Place the next combo box next to the previous one
 
-	// Combo box for the second texture
-	ImGui::PushItemWidth(100);
-	const char* texture2Preview = textureNames[texture2Index].c_str();
-	if (ImGui::BeginCombo("Texture 2", texture2Preview))
-	{
-		for (int n = 0; n < textureNames.size(); n++)
+		// Combo box for the second texture
+		ImGui::PushItemWidth(100);
+		const char* texture2Preview = textureNames[currentlySelected->textureIndex2].c_str();
+		if (ImGui::BeginCombo("Texture 2", texture2Preview))
 		{
-			const bool isSelected = (texture2Index == n);
-			if (ImGui::Selectable(textureNames[n].c_str(), isSelected))
+			for (int n = 0; n < textureNames.size(); n++)
 			{
-				texture2Index = n;
-				std::cout << "Switched Texture 2 to: " << textureNames[n] << std::endl;
+				const bool isSelected = (currentlySelected->textureIndex2 == n);
+				if (ImGui::Selectable(textureNames[n].c_str(), isSelected))
+				{
+					currentlySelected->textureIndex2 = n;
+					std::cout << "Switched Texture 2 to: " << textureNames[n] << std::endl;
+				}
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
 			}
-			if (isSelected)
-				ImGui::SetItemDefaultFocus();
+			ImGui::EndCombo();
 		}
-		ImGui::EndCombo();
+		ImGui::PopItemWidth();
+		ImGui::SliderFloat("Texture Mixer", &currentlySelected->textureMixer, 0.0f, 1.0f);
 	}
-	ImGui::PopItemWidth();
-
-	ImGui::SliderFloat("Texture Mixer", &textureMixer, 0.0f, 1.0f);
+	
 	ImGui::End();
 
 }

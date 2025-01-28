@@ -1,4 +1,5 @@
 #include "MessageHandler.h"
+#include "MeshManager.h"
 #include <iostream>
 #include <map>
 
@@ -34,7 +35,7 @@ void MessageHandler::ProcessMessage(Message* message)
 		std::cout << "Mouse message: " << message->msg << std::endl;
 		break;
 	case MessageType::Object:
-		std::cout << "Object message: " << message->msg << std::endl;
+		MeshManager::Get().ProcessMessage(message);
 		break;
 	case MessageType::FloatMessage:
 		std::cout << "Float message: " << message->msg << std::endl;

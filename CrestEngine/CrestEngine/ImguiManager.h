@@ -10,8 +10,6 @@ class ImguiManager
 public:
 	void UpdateImGui(
 		bool drawCubes,
-		float* cubePosition,
-		float* cubeRotation,
 		EntityManager& entityManager,
 		Entity*& currentlySelected,
 		std::vector<std::string>& modelNames,

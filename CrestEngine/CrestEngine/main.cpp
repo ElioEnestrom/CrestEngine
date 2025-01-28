@@ -94,10 +94,19 @@ int main()
 
 	MeshManager::Allocate();
 
-	unsigned int currentBuffer = 0;
+    std::vector<Message> objMessages = {
+        {MessageType::Object, "Flag.obj"},
+        {MessageType::Object, "Cube.obj"}
+    };
 
-	MeshManager::Get().ProcessMessage(new Message(MessageType::Object, "Flag.obj"));
-	MeshManager::Get().ProcessMessage(new Message(MessageType::Object, "Cube.obj"));
+    for (auto& message : objMessages) {
+        std::thread queueThread([](Message* msg) {
+            MessageQueue::Get().QueueMessage(msg);
+        }, &message);
+        queueThread.join();
+    }
+
+	unsigned int currentBuffer = 0;
 
 	std::unordered_map<std::string, Mesh*> meshMap;
 	std::unordered_map<unsigned int, unsigned int> VBOs;
@@ -158,8 +167,8 @@ int main()
 	EntityManager entityManager;
 	Entity* currentlySelected = nullptr;
 	bool drawCubes = true;
-	float cubePosition[3] = { 0, -5, -10.0f };
-	float cubeRotation[3] = { 0, 0, 0 };
+	//float cubePosition[3] = { 0, -5, -10.0f };
+	//float cubeRotation[3] = { 0, 0, 0 };
 
 	std::vector<std::string> modelNames;
 	for (auto& mesh : MeshManager::Get().meshList) {
@@ -186,96 +195,90 @@ int main()
 	//		std::this_thread::sleep_for(std::chrono::seconds(1));
 	//	}
 	//});
-
 	while (!glfwWindowShouldClose(window))
 	{
-		Input::ActivateInput(window);
-		Time::DeltaTime();
+	    Input::ActivateInput(window);
+	    Time::DeltaTime();
+	
+	    glClearColor(0.4, 0.3, 0.2, 1);
+	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	    ImguiManager imguiManager;
+	    imguiManager.UpdateImGui(
+	        drawCubes, 
+	        entityManager, 
+	        currentlySelected, 
+	        modelNames, 
+	        currentModelIndex, 
+	        currentObject, 
+	        meshMap, 
+	        currentBuffer, 
+	        VAOs, 
+	        textureNames, 
+	        texture1Index, 
+	        texture2Index, 
+	        textureMixer);
+	
+	    if (drawCubes)
+	    {
+	        ourShader.use();
+	
+	        glm::mat4 view;
+	        Camera::MoveCamera(view);
+	
+	        glm::mat4 projection = glm::perspective(glm::radians(Camera::GetFOV()), 800.0f / 600.0f, 0.1f, 100.0f);
+	        ourShader.setMat4("view", view);
+	        ourShader.setMat4("projection", projection);
+	
+	        for (Entity* entity : entityManager.entities)
+	        {
+	            if (entity != nullptr)
+	            {
+	                currentObject = meshMap[entity->model]->vertices;
+	                currentBuffer = VAOs[meshMap[entity->model]->id];
+	
+					ourShader.setFloat("textureMixer", entity->textureMixer);
 
-
-		glClearColor(0.4, 0.3, 0.2, 1);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textureIDs[texture1Index]);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, textureIDs[texture2Index]);
-
-		ImguiManager imguiManager;
-		imguiManager.UpdateImGui(
-			drawCubes, 
-			cubePosition, 
-			cubeRotation, 
-			entityManager, 
-			currentlySelected, 
-			modelNames, 
-			currentModelIndex, 
-			currentObject, 
-			meshMap, 
-			currentBuffer, 
-			VAOs, 
-			textureNames, 
-			texture1Index, 
-			texture2Index, 
-			textureMixer);
-
-		//MessageQueue::QueueMessage(new Message(MessageType::String, "Hello, World!"));
-
-
-		if (drawCubes)
-		{
-			ourShader.use();
-			ourShader.setFloat("textureMixer", textureMixer);
-
-			glm::mat4 view;
-
-			Camera::MoveCamera(view);
-			
-
-			glm::mat4 projection = glm::perspective(glm::radians(Camera::GetFOV()), 800.0f / 600.0f, 0.1f, 100.0f);
-			ourShader.setMat4("view", view);
-			ourShader.setMat4("projection", projection);
-
-			glBindVertexArray(currentBuffer);
-
-			// Render all entities
-			for (Entity* entity : entityManager.entities)
-			{
-				if (entity == currentlySelected)
-				{
-					entity->position = glm::vec3(cubePosition[0], cubePosition[1], cubePosition[2]);
-					glm::mat4 model = glm::translate(glm::mat4(1.0f), entity->position);
-					entity->rotation = glm::vec3(cubeRotation[0], cubeRotation[1], cubeRotation[2]); 
-					glm::vec3 rotationAxis = entity->rotation;
-					if (glm::length(rotationAxis) > 0.0f) {
-						model = glm::rotate(model, glm::radians(rotationAxis.x), glm::vec3(1.0f, 0, 0));
-						model = glm::rotate(model, glm::radians(rotationAxis.y), glm::vec3(0, 1.0f, 0));
-						model = glm::rotate(model, glm::radians(rotationAxis.z), glm::vec3(0, 0, 1.f));
-					}
-					ourShader.setMat4("model", model);
-
-					//glDrawElements(GL_TRIANGLES, OBJpositionIndex.size(), GL_UNSIGNED_INT, 0);
-					glDrawArrays(GL_TRIANGLES, 0, (GLsizei)currentObject.size());
-				}
-			}
-		}
-
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-		glfwSwapBuffers(window);
-		glfwPollEvents();
+	                glBindVertexArray(currentBuffer);
+	
+	                entity->position = glm::vec3(entity->entityPosition[0], entity->entityPosition[1], entity->entityPosition[2]);
+	                glm::mat4 model = glm::translate(glm::mat4(1.0f), entity->position);
+	                entity->rotation = glm::vec3(entity->entityRotation[0], entity->entityRotation[1], entity->entityRotation[2]);
+	                glm::vec3 rotationAxis = entity->rotation;
+	                if (glm::length(rotationAxis) > 0.0f) {
+	                    model = glm::rotate(model, glm::radians(rotationAxis.x), glm::vec3(1.0f, 0, 0));
+	                    model = glm::rotate(model, glm::radians(rotationAxis.y), glm::vec3(0, 1.0f, 0));
+	                    model = glm::rotate(model, glm::radians(rotationAxis.z), glm::vec3(0, 0, 1.f));
+	                }
+	                ourShader.setMat4("model", model);
+	
+	                // Bind textures for the current entity
+	                glActiveTexture(GL_TEXTURE0);
+	                glBindTexture(GL_TEXTURE_2D, textureIDs[entity->textureIndex1]);
+	                glActiveTexture(GL_TEXTURE1);
+	                glBindTexture(GL_TEXTURE_2D, textureIDs[entity->textureIndex2]);
+	
+	                glDrawArrays(GL_TRIANGLES, 0, (GLsizei)currentObject.size());
+	            }
+	        }
+	    }
+	
+	    ImGui::Render();
+	    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	
+	    glfwSwapBuffers(window);
+	    glfwPollEvents();
 	}
-
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
-
-	// Join threads
-	//messageThread.join();
-
-	glfwTerminate();
-	return 0;
+	
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
+	
+		// Join threads
+		//messageThread.join();
+	
+		glfwTerminate();
+		return 0;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
