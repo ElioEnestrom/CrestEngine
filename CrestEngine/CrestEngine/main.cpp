@@ -94,16 +94,8 @@ int main()
 
 	MeshManager::Allocate();
 
-    std::vector<Message> objMessages = {
-        {MessageType::Object, "Flag.obj"},
-        {MessageType::Object, "Cube.obj"}
-    };
-
-    for (auto& message : objMessages) {
-        std::thread queueThread([](Message* msg) {
-            MessageQueue::Get().QueueMessage(msg);
-        }, &message);
-        queueThread.join();
+    for (auto& message : MeshManager::Get().objMessages) {
+        MessageQueue::Get().QueueMessage(&message);
     }
 
 	unsigned int currentBuffer = 0;
@@ -146,6 +138,8 @@ int main()
 
 	unsigned int texture3 = Texture::loadTexture("Pride.png");
 
+	unsigned int texture4 = Texture::loadTexture("Viking_House.png");
+
 	ourShader.use();
 	ourShader.setInt("texture2", 1); // or with shader class
 	//ourShader.setInt("texture1", 0); // or with shader class
@@ -180,8 +174,8 @@ int main()
 	currentBuffer = VAOs[meshMap["Flag.obj"]->id];
 	currentObject = meshMap["Flag.obj"]->vertices;
 	
-	std::vector<std::string> textureNames = { "face.png", "jail.png", "Pride.png"};
-	std::vector<unsigned int> textureIDs = { texture1, texture2, texture3 };
+	std::vector<std::string> textureNames = { "face.png", "jail.png", "Pride.png", "Viking_House.png"};
+	std::vector<unsigned int> textureIDs = { texture1, texture2, texture3, texture4 };
 	int texture1Index = 0;
 	int texture2Index = 1;
 	int currentTextureIndex = 0; 

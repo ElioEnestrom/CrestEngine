@@ -57,22 +57,23 @@ void ImguiManager::UpdateImGui(
 	}
 	//ImGui::InputText("Name", &currentlySelected->name[0], currentlySelected->name.size());
 	ImGui::Text("Currently Selected: %s", currentlySelected ? currentlySelected->name.c_str() : "None");
+	if (ImGui::BeginListBox("Scene View", { 80, 200 }))
+	{
+		for (Entity* entity : entityManager.entities)
+		{
+			bool isSelected = entity == currentlySelected;
+			if (ImGui::Selectable(entity->name.c_str(), isSelected))
+			{
+				currentlySelected = entity;
+				//std::cout << currentlySelected->name.c_str();
+			}
+		}
+		ImGui::EndListBox();
+	}
 
 	if (currentlySelected) {
 
-		if (ImGui::BeginListBox("Scene View", { 80, 200 }))
-		{
-			for (Entity* entity : entityManager.entities)
-			{
-				bool isSelected = entity == currentlySelected;
-				if (ImGui::Selectable(entity->name.c_str(), isSelected))
-				{
-					currentlySelected = entity;
-					//std::cout << currentlySelected->name.c_str();
-				}
-			}
-			ImGui::EndListBox();
-		}
+		
 
 
 

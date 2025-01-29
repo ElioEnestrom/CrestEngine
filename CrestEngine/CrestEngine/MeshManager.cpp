@@ -1,17 +1,20 @@
 
 #include "MeshManager.h"
+#include "MemoryChecker.h"
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <list>
 #include <thread>
 #include <mutex>
+#include <filesystem>
 
 MeshManager* MeshManager::instance = nullptr;
+MemoryChecker memoryChecker;
 unsigned int id;
 
 MeshManager::MeshManager() {
-
+	id = 0;
 }
 
 void MeshManager::Allocate() {
@@ -29,15 +32,16 @@ void MeshManager::ProcessMessage(Message* message)
 {
 	std::string msg = message->msg;
 	switch(message->type) {
-	    case MessageType::Object:
-	    	if (msg == "Flag.obj" || msg == "Cube.obj") {
-	    		std::string filename = message->msg;
-	    		loadOBJ(filename);
-	    	}
-	        else {
-	    		std::cerr << "Unknown message: " << msg << std::endl;
-	        }
-	    break;
+        case MessageType::Object:
+		    for (const auto& objMessage : objMessages) {
+		    	if (msg == objMessage.msg) {
+		    		std::string filename = message->msg;
+		    		loadOBJ(filename);
+		    		return;
+		    	}
+		    }
+        std::cerr << "Unknown message: " << msg << std::endl;
+        break;
 	}
 }
 
@@ -51,12 +55,25 @@ void* MeshManager::loadOBJ(const std::string& filename)
     std::vector<unsigned int> normalIndex;
     std::vector<unsigned int> vertexIndex;
 
-
     std::ifstream file(filename);
-    if (!file.is_open()) {
-        std::cerr << "Failed to open OBJ file: " << filename << std::endl;
+        if (!file.is_open()) {
+            std::cerr << "Failed to open OBJ file: " << filename << std::endl;
+            return nullptr;
+        }
+
+    // Calculating the estimated size of the object
+    std::streampos fileSize = file.tellg();
+    file.seekg(0, std::ios::end);
+    fileSize = file.tellg() - fileSize;
+    file.seekg(0, std::ios::beg);
+
+	// Check if there is enough memory available (Divides by a million since statex.ullAvailPhys is in MB)
+    if (!memoryChecker.CheckMemory(static_cast<float>(fileSize)/ 1000000)) {
+        std::cerr << "Not enough memory to load OBJ file: " << filename << std::endl;
+		std::cerr << "File size: " << fileSize << " bytes" << std::endl;
         return nullptr;
     }
+	memoryChecker.CheckMemory();
 
     Mesh* newMesh = new Mesh();
     newMesh->path = filename;
@@ -73,10 +90,6 @@ void* MeshManager::loadOBJ(const std::string& filename)
             vertices.push_back(x);
             vertices.push_back(y);
             vertices.push_back(z);
-            //std::cout << vertices[2] << std::endl;
-            //Vertex vertex;
-            //iss >> vertex.x >> vertex.y >> vertex.z;
-            //vertices.push_back(vertex);
         }
         else if (prefix == "vn") {
             float nx, ny, nz;
@@ -92,40 +105,33 @@ void* MeshManager::loadOBJ(const std::string& filename)
             texCoords.push_back(v);
         }
         else if (prefix == "f") {
+            std::vector<unsigned int> facePositionIndices;
+            std::vector<unsigned int> faceTextureIndices;
+            std::vector<unsigned int> faceNormalIndices;
             unsigned int posIdx, texIdx, normIdx;
             char slash; // Skip the slashes
-            for (int i = 0; i < 3; ++i) {
-                iss >> posIdx >> slash >> texIdx >> slash >> normIdx;
-                positionIndex.push_back(posIdx - 1);  // Convert to 0-based index
-                textureIndex.push_back(texIdx - 1);
-                normalIndex.push_back(normIdx - 1);
-
-                //std::cout << posIdx << std::endl;
+            while (iss >> posIdx >> slash >> texIdx >> slash >> normIdx) {
+                facePositionIndices.push_back(posIdx - 1);  // Convert to 0-based index
+                faceTextureIndices.push_back(texIdx - 1);
+                faceNormalIndices.push_back(normIdx - 1);
             }
-            /*else if (prefix == "f") {
-                unsigned int p1, t1, n1, p2, t2, n2, p3, t3, n3; char slash; // to skip the slashes
+            // Triangulate the face (assuming it's a convex polygon)
+            for (size_t i = 1; i < facePositionIndices.size() - 1; ++i) {
+                positionIndex.push_back(facePositionIndices[0]);
+                positionIndex.push_back(facePositionIndices[i]);
+                positionIndex.push_back(facePositionIndices[i + 1]);
 
-                iss >> p1 >> slash >> t1 >> slash >> n1
-                    >> p2 >> slash >> t2 >> slash >> n2
-                    >> p3 >> slash >> t3 >> slash >> n3;
+                textureIndex.push_back(faceTextureIndices[0]);
+                textureIndex.push_back(faceTextureIndices[i]);
+                textureIndex.push_back(faceTextureIndices[i + 1]);
 
-                //std::cout << p1 << std::endl;
-                //std::cout << p2 << std::endl;
-                //std::cout << p3 << std::endl;
-
-                positionIndex.push_back(p1 - 1);
-                positionIndex.push_back(p2 - 1);
-                positionIndex.push_back(p3 - 1);
-                textureIndex.push_back(t1);
-                textureIndex.push_back(t2);
-                textureIndex.push_back(t3);
-                normalIndex.push_back(n1);
-                normalIndex.push_back(n2);
-                normalIndex.push_back(n3);
-            }*/
-
+                normalIndex.push_back(faceNormalIndices[0]);
+                normalIndex.push_back(faceNormalIndices[i]);
+                normalIndex.push_back(faceNormalIndices[i + 1]);
+            }
         }
     }
+
     Vertex vertex;
     for (size_t i = 0; i < positionIndex.size(); i++) {
         vertex.position = glm::vec3(
@@ -138,38 +144,7 @@ void* MeshManager::loadOBJ(const std::string& filename)
             texCoords[2 * textureIndex[i] + 1]
         );
         newMesh->vertices.push_back(vertex);
-        //finalVertices.push_back(vertex);
-        //                finalVertices.push_back(vertex);
     }
-
-    //for (size_t i = 0; i < normalIndex.size(); ++i) {
-    //    vertex.normal = glm::vec3(
-    //        normals[3 * normalIndex[i]],
-    //        normals[3 * normalIndex[i] + 1],
-    //        normals[3 * normalIndex[i] + 2]
-    //    );
-    //}
-
-//for (size_t i = 0; i < finalVertices.size(); ++i)
-//{
-//	std::cout << finalVertices[i].position.x << std::endl;
-//	std::cout << finalVertices[i].position.y << std::endl;
-//	std::cout << finalVertices[i].position.z << std::endl;
-//    
-//}
-
-
-    //std::cout << vertices[3 * positionIndex[0]] << std::endl;
-    //std::cout << vertices[3 * positionIndex[1] + 1] << std::endl;
-    //std::cout << vertices[3 * positionIndex[2] + 2] << std::endl;
-    //std::cout << finalVertices.size() << std::endl;
-    //for (size_t i = 0; i < textureIndex.size(); ++i) 
-    //{
-    //}
-    //for (size_t i = 0; i < normalIndex.size(); ++i) 
-    //{
-    //
-    //}
 
     for (size_t i = 0; i < positionIndex.size(); ++i) {
         vertexIndex.push_back(static_cast<unsigned int>(positionIndex[i]));
@@ -177,7 +152,7 @@ void* MeshManager::loadOBJ(const std::string& filename)
         vertexIndex.push_back(static_cast<unsigned int>(normalIndex[i]));
     }
     MeshManager::Get().meshList.push_back(newMesh);
-	newMesh->id = MeshManager::Get().id;
+    newMesh->id = MeshManager::Get().id;
     MeshManager::Get().id++;
 }
 
