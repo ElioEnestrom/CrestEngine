@@ -55,7 +55,7 @@ void* MeshManager::loadOBJ(const std::string& filename)
     std::vector<unsigned int> normalIndex;
     std::vector<unsigned int> vertexIndex;
 
-    std::ifstream file(filename);
+    std::fstream file(filename);
         if (!file.is_open()) {
             std::cerr << "Failed to open OBJ file: " << filename << std::endl;
             return nullptr;
@@ -78,12 +78,13 @@ void* MeshManager::loadOBJ(const std::string& filename)
     Mesh* newMesh = new Mesh();
     newMesh->path = filename;
 
+
     std::string line;
     while (std::getline(file, line)) {
         std::istringstream iss(line);
         std::string prefix;
         iss >> prefix;
-
+    
         if (prefix == "v") {
             float x, y, z;
             iss >> x >> y >> z;
@@ -120,11 +121,11 @@ void* MeshManager::loadOBJ(const std::string& filename)
                 positionIndex.push_back(facePositionIndices[0]);
                 positionIndex.push_back(facePositionIndices[i]);
                 positionIndex.push_back(facePositionIndices[i + 1]);
-
+    
                 textureIndex.push_back(faceTextureIndices[0]);
                 textureIndex.push_back(faceTextureIndices[i]);
                 textureIndex.push_back(faceTextureIndices[i + 1]);
-
+    
                 normalIndex.push_back(faceNormalIndices[0]);
                 normalIndex.push_back(faceNormalIndices[i]);
                 normalIndex.push_back(faceNormalIndices[i + 1]);
