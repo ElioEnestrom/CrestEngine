@@ -61,6 +61,20 @@ void* MeshManager::loadOBJ(const std::string& filename)
             return nullptr;
         }
 
+        
+    //Mesh* deserializeMesh = new Mesh();
+    //if (deserializeMesh->Deserialize(file)) {
+    //    std::cerr << "Successfully deserialized mesh from file: " << filename << std::endl;
+    //    MeshManager::Get().meshList.push_back(deserializeMesh);
+    //    deserializeMesh->id = MeshManager::Get().id;
+    //    MeshManager::Get().id++;
+    //    return deserializeMesh;
+    //}
+
+    //Reset the file stream to the beginning for OBJ parsing
+    file.clear();
+    file.seekg(0, std::ios::beg);
+
     // Calculating the estimated size of the object
     std::streampos fileSize = file.tellg();
     file.seekg(0, std::ios::end);
@@ -152,9 +166,11 @@ void* MeshManager::loadOBJ(const std::string& filename)
         vertexIndex.push_back(static_cast<unsigned int>(textureIndex[i]));
         vertexIndex.push_back(static_cast<unsigned int>(normalIndex[i]));
     }
+
     MeshManager::Get().meshList.push_back(newMesh);
     newMesh->id = MeshManager::Get().id;
     MeshManager::Get().id++;
+	newMesh->Serialize(file, vertexIndex);
 }
 
 Mesh* MeshManager::GetMesh(std::string filename)

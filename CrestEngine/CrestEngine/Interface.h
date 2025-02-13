@@ -3,7 +3,7 @@
 #include <fstream>
 
 
-class Interface {
-	virtual bool Serialize(std::fstream& stream) = 0;
-	virtual bool Deserialize(std::fstream& stream) const= 0;
-};
+//class Interface {
+//	virtual bool Serialize(std::fstream& stream, const std::vector<unsigned int> object) = 0;
+//	virtual bool Deserialize(std::fstream& stream) = 0;
+//};
