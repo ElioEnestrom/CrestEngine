@@ -56,20 +56,25 @@ void* MeshManager::loadOBJ(const std::string& filename)
     std::vector<unsigned int> vertexIndex;
 
     std::fstream file(filename);
-        if (!file.is_open()) {
-            std::cerr << "Failed to open OBJ file: " << filename << std::endl;
-            return nullptr;
-        }
+    if (!file.is_open()) {
+        std::cerr << "Failed to open OBJ file: " << filename << std::endl;
+        return nullptr;
+    }
 
+    std::fstream deSerializeFile(filename + ".binaryThingy", std::ios::in | std::ios::binary);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open OBJ file: " << filename << std::endl;
+        return nullptr;
+    }
         
-    //Mesh* deserializeMesh = new Mesh();
-    //if (deserializeMesh->Deserialize(file)) {
-    //    std::cerr << "Successfully deserialized mesh from file: " << filename << std::endl;
-    //    MeshManager::Get().meshList.push_back(deserializeMesh);
-    //    deserializeMesh->id = MeshManager::Get().id;
-    //    MeshManager::Get().id++;
-    //    return deserializeMesh;
-    //}
+    Mesh* deserializeMesh = new Mesh();
+    if (deserializeMesh->Deserialize(deSerializeFile)) {
+        std::cerr << "Successfully deserialized mesh from file: " << filename << std::endl;
+        MeshManager::Get().meshList.push_back(deserializeMesh);
+        deserializeMesh->id = MeshManager::Get().id;
+        MeshManager::Get().id++;
+        return deserializeMesh;
+    }
 
     //Reset the file stream to the beginning for OBJ parsing
     file.clear();
@@ -170,7 +175,13 @@ void* MeshManager::loadOBJ(const std::string& filename)
     MeshManager::Get().meshList.push_back(newMesh);
     newMesh->id = MeshManager::Get().id;
     MeshManager::Get().id++;
-	newMesh->Serialize(file, vertexIndex);
+
+    std::fstream serializeFile(filename + ".binaryThingy", std::ios::out | std::ios::binary);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open OBJ file: " << filename << std::endl;
+        return nullptr;
+    }
+	newMesh->Serialize(serializeFile, vertexIndex);
 }
 
 Mesh* MeshManager::GetMesh(std::string filename)

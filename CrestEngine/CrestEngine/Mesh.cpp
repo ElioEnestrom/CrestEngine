@@ -10,6 +10,8 @@ bool Mesh::Serialize(std::fstream& stream, std::vector<unsigned int> object)
 
     std::cerr << "Serializing mesh: " << path << std::endl;
 
+	//stream(path, std::ios::out | std::ios::binary);
+
     // Serialize the id
     stream.write(reinterpret_cast<const char*>(&id), sizeof(id));
 

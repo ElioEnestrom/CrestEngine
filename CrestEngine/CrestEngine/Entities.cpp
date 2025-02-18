@@ -23,12 +23,25 @@ Entity* EntityManager::CreateEntity()
 	newEntity->entityRotation[2] = 0.0f;
 	newEntity->textureMixer = 0.5f;
 
+    
+
     amountOfEntities++;
     
     entities.push_back(newEntity);
 
     return newEntity;
 }
+
+bool Entity::WriteTo(std::iostream& file) const
+{
+    return false;
+}
+
+bool Entity::ReadFrom(std::iostream& file)
+{
+    return false;
+}
+
 
 void EntityManager::DeleteEntity(Entity* toDelete)
 {

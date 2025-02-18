@@ -115,13 +115,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\GLFW\include;$(SolutionDir)Dependencies\Glad;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\GLFW;$(SolutionDir)Dependencies\Glad;$(SolutionDir)Dependencies\GLM\glm;$(SolutionDir)Dependencies\imgui;$(SolutionDir)Dependencies\Stbimage;$(SolutionDir)Dependencies\imgui\backends;$(SolutionDir)Dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>opengl32.lib;$(SolutionDir)Dependencies\GLFW\lib\glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\GLFW\lib;$(SolutionDir)Dependencies\GLFW\lib\glfw.lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/VERBOSE:LIB %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
@@ -148,7 +148,10 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Entities.cpp" />
+    <ClCompile Include="EntityProperty.cpp" />
+    <ClCompile Include="GeneralProperty.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="GraphicProperty.cpp" />
     <ClCompile Include="imgui.cpp" />
     <ClCompile Include="ImguiManager.cpp" />
     <ClCompile Include="imgui_demo.cpp" />
@@ -158,13 +161,13 @@
     <ClCompile Include="imgui_tables.cpp" />
     <ClCompile Include="imgui_widgets.cpp" />
     <ClCompile Include="Input.cpp" />
-    <ClCompile Include="Interface.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MemoryChecker.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshManager.cpp" />
     <ClCompile Include="MessageHandler.cpp" />
     <ClCompile Include="MessageQueue.cpp" />
+    <ClCompile Include="ModelProperty.cpp" />
     <ClCompile Include="OBJLoader.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Texture.cpp" />
@@ -173,6 +176,9 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Entities.h" />
+    <ClInclude Include="EntityProperty.h" />
+    <ClInclude Include="GeneralProperty.h" />
+    <ClInclude Include="GraphicProperty.h" />
     <ClInclude Include="ImguiManager.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Interface.h" />
@@ -181,7 +187,7 @@
     <ClInclude Include="MeshManager.h" />
     <ClInclude Include="MessageHandler.h" />
     <ClInclude Include="MessageQueue.h" />
-    <ClInclude Include="Model.h" />
+    <ClInclude Include="ModelProperty.h" />
     <ClInclude Include="OBJLoader.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Texture.h" />

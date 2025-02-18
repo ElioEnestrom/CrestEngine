@@ -1,9 +1,9 @@
 #pragma once
-#include "Mesh.h"
-#include <fstream>
+#include <iostream>
 
-
-//class Interface {
-//	virtual bool Serialize(std::fstream& stream, const std::vector<unsigned int> object) = 0;
-//	virtual bool Deserialize(std::fstream& stream) = 0;
-//};
+class IWritable 
+{
+public:
+	virtual bool WriteTo(std::iostream& file) const = 0;
+	virtual bool ReadFrom(std::iostream& file) = 0;
+};

@@ -263,16 +263,16 @@ int main()
 	    glfwSwapBuffers(window);
 	    glfwPollEvents();
 	}
-	
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
-	
-		// Join threads
-		//messageThread.join();
-	
-		glfwTerminate();
-		return 0;
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+
+	// Join threads
+	//messageThread.join();
+
+	glfwTerminate();
+	return 0;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
