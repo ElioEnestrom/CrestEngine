@@ -161,6 +161,7 @@
     <ClCompile Include="imgui_tables.cpp" />
     <ClCompile Include="imgui_widgets.cpp" />
     <ClCompile Include="Input.cpp" />
+    <ClCompile Include="Level.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MemoryChecker.cpp" />
     <ClCompile Include="Mesh.cpp" />
@@ -182,6 +183,7 @@
     <ClInclude Include="ImguiManager.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Interface.h" />
+    <ClInclude Include="Level.h" />
     <ClInclude Include="MemoryChecker.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshManager.h" />

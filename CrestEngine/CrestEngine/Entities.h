@@ -1,13 +1,19 @@
 #pragma once
 
 #include "Interface.h"
+#include "GeneralProperty.h"
+#include "ModelProperty.h"
+#include "GraphicProperty.h"
+#include "EntityProperty.h"
+
 #include <glad/glad.h>
 #include <string>
 #include <vector>
-
+#include <list>
 #include <glm/glm.hpp>
 
 struct Entity : public IWritable {
+public:
 	std::string name;
 	std::string model;
 	//glm::mat4 transform;
@@ -18,12 +24,26 @@ struct Entity : public IWritable {
 	float textureMixer = 0.0f;
 	int textureIndex1 = 0;
 	int textureIndex2 = 0;
+
+	GeneralProperty generalProperty;
+	ModelProperty modelProperty;
+	GraphicProperty graphicProperty;
+	
+
+	EntityProperty* AllocateFor(PropertyType type); 
+	void AddProperty(EntityProperty* property); // Add method to add properties
+
+	std::vector<EntityProperty*> properties;
+
 	//Component component;
 	//std::string modelSrc;
 	//std::string textureSrc;
 
+	void UpdateProperties(Entity* property);
+
 	bool WriteTo(std::iostream& file) const override;
 	bool ReadFrom(std::iostream& file) override;
+private:
 };
 
 
@@ -35,5 +55,6 @@ struct Entity : public IWritable {
 	void DeleteEntity(Entity* toDelete);
 
 	std::vector<Entity*> entities;
+	int amountOfEntities = 0;
  private:
  };

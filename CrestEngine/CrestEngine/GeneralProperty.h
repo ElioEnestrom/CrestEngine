@@ -3,6 +3,8 @@
 #include "glm/glm.hpp"
 #include "EntityProperty.h"
 
+class Entity;
+
 class GeneralProperty : public EntityProperty
 {
 public:
@@ -10,6 +12,9 @@ public:
 	virtual ~GeneralProperty();
 	virtual bool WriteTo(std::iostream& file) const override;
 	virtual bool ReadFrom(std::iostream& file) override;
+
+	void UpdateEntity(Entity* entity) const override; 
+	void UpdatePropertyValues(Entity* entity) override;
 
 private:
 	std::string name;

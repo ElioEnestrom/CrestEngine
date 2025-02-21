@@ -1,9 +1,15 @@
 #include "EntityProperty.h"
 
-EntityProperty::EntityProperty(PropertType type)
+EntityProperty::EntityProperty(PropertyType type)
+{
+	this->type = type;
+}
+
+EntityProperty::~EntityProperty()
 {
 
 }
+
 
 bool EntityProperty::WriteTo(std::iostream& file) const
 {

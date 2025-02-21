@@ -3,6 +3,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "Entities.h"
+#include "Level.h"
 #include "Mesh.h"
 #include <map>
 
@@ -54,6 +55,20 @@ void ImguiManager::UpdateImGui(
 		{
 			std::cout << "No entity selected to delete." << std::endl;
 		}
+	}
+	if (ImGui::Button("LoadLevel"))
+	{
+		Level level;
+		level.LoadLevel(entityManager);
+		//Level::Get().LoadLevel(entityManager);
+
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Save Level"))
+	{
+		Level level;
+		level.SaveLevel(entityManager);
+		//Level::Get().SaveLevel(entityManager);
 	}
 	//ImGui::InputText("Name", &currentlySelected->name[0], currentlySelected->name.size());
 	ImGui::Text("Currently Selected: %s", currentlySelected ? currentlySelected->name.c_str() : "None");

@@ -3,6 +3,8 @@
 #include <iostream>
 #include "EntityProperty.h"
 
+class Entity;
+
 class GraphicProperty : public EntityProperty
 {
 public:
@@ -10,6 +12,9 @@ public:
 	virtual ~GraphicProperty();
 	virtual bool WriteTo(std::iostream& file) const override;
 	virtual bool ReadFrom(std::iostream& file) override;
+
+	void UpdateEntity(Entity* entity) const override;
+	void UpdatePropertyValues(Entity* entity) override;
 
 private:
 	int textureIndex1;

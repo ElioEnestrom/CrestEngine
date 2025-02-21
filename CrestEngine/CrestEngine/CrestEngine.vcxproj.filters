@@ -76,6 +76,12 @@
     <Filter Include="Source Files\Time">
       <UniqueIdentifier>{4b56cce5-fe56-4429-a0ca-10ed284c382d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Levels">
+      <UniqueIdentifier>{60b4cb7b-44ba-4e73-8a17-22349b869868}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Levels">
+      <UniqueIdentifier>{d9f696f1-75b0-4084-96c7-13028d0f11c0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -156,6 +162,9 @@
     <ClCompile Include="EntityProperty.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Level.cpp">
+      <Filter>Source Files\Levels</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Entities.h">
@@ -211,6 +220,9 @@
     </ClInclude>
     <ClInclude Include="ModelProperty.h">
       <Filter>Header Files\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Level.h">
+      <Filter>Header Files\Levels</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

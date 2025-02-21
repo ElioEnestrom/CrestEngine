@@ -1,8 +1,5 @@
 #include "Entities.h"
-
-namespace {
-    int amountOfEntities = 0;
-};
+#include <sstream>
     
 Entity* EntityManager::CreateEntity()
 {
@@ -23,8 +20,14 @@ Entity* EntityManager::CreateEntity()
 	newEntity->entityRotation[2] = 0.0f;
 	newEntity->textureMixer = 0.5f;
 
-    
+    //newEntity->generalProperty.
 
+	newEntity->AddProperty(new GeneralProperty());
+    newEntity->AddProperty(new ModelProperty());
+    newEntity->AddProperty(new GraphicProperty());
+
+	newEntity->UpdateProperties(newEntity);
+    
     amountOfEntities++;
     
     entities.push_back(newEntity);
@@ -32,14 +35,119 @@ Entity* EntityManager::CreateEntity()
     return newEntity;
 }
 
+EntityProperty* Entity::AllocateFor(PropertyType type)
+{
+	switch (type)
+	{
+        case PropertyType::GRAPHIC: return new GraphicProperty();
+        case PropertyType::GENERALDATA: return new GeneralProperty();
+        case PropertyType::MODEL: return new ModelProperty();
+        default:
+        	return nullptr;
+	}
+}
+
+void Entity::AddProperty(EntityProperty* property)
+{
+    properties.push_back(property);
+}
+
+void Entity::UpdateProperties(Entity* property)
+{
+	generalProperty.UpdatePropertyValues(property);
+	modelProperty.UpdatePropertyValues(property);
+	graphicProperty.UpdatePropertyValues(property);
+}
+
 bool Entity::WriteTo(std::iostream& file) const
 {
-    return false;
+    if (!generalProperty.WriteTo(file)) {
+        std::cerr << "Failed to write GeneralProperty." << std::endl;
+        return false;
+    }
+
+    //EntityProperty* genrealPropertyStuff = AllocateFor(static_cast<PropertyType>(generalProperty.type));
+
+    if (!modelProperty.WriteTo(file)) {
+        std::cerr << "Failed to write ModelProperty." << std::endl;
+        return false;
+    }
+
+    if (!graphicProperty.WriteTo(file)) {
+        std::cerr << "Failed to write GraphicProperty." << std::endl;
+        return false;
+    }
+
+    //int numCustomProperties = properties.size();
+    //std::cerr << "Writing number of custom properties: " << numCustomProperties << std::endl;
+    //file.write(reinterpret_cast<const char*>(&numCustomProperties), sizeof(numCustomProperties));
+    //if (!file) {
+    //    std::cerr << "Failed to write number of custom properties." << std::endl;
+    //    return false;
+    //}
+
+    for (EntityProperty* property : properties)
+    {
+        int propertyType = property->type;
+        std::cerr << "Writing property type: " << propertyType << std::endl;
+        file.write(reinterpret_cast<const char*>(&propertyType), sizeof(propertyType));
+        if (!file) {
+            std::cerr << "Failed to write property type." << std::endl;
+            return false;
+        }
+
+        std::cerr << "Writing property data..." << std::endl;
+        if (!property->WriteTo(file)) {
+            std::cerr << "Failed to write property data." << std::endl;
+            return false;
+        }
+    }
+    return true;
 }
 
 bool Entity::ReadFrom(std::iostream& file)
 {
-    return false;
+    generalProperty.ReadFrom(file);
+	generalProperty.UpdateEntity(this);
+    std::cerr << "Finished reading GeneralProperty." << std::endl;
+
+    modelProperty.ReadFrom(file);
+	modelProperty.UpdateEntity(this);
+    std::cerr << "Finished reading ModelProperty." << std::endl;
+
+    graphicProperty.ReadFrom(file);
+	graphicProperty.UpdateEntity(this);
+    std::cerr << "Finished reading GraphicProperty." << std::endl;
+
+    //int numCustomProperties;
+    //file.read(reinterpret_cast<char*>(&numCustomProperties), sizeof(numCustomProperties)); 
+    //if (numCustomProperties > 100) {
+    //    std::cerr << "Trying to load too many properties." << std::endl;
+    //    return false;
+    //}
+    //std::cerr << "Number of custom properties to read: " << numCustomProperties << std::endl;
+
+	//numCustomProperties = properties.size();
+
+    for (int i = 0; i < properties.size(); i++)
+    {
+        int propertyType;
+        file.read(reinterpret_cast<char*>(&propertyType), sizeof(propertyType));
+        std::cerr << "Reading property type: " << propertyType << std::endl;
+
+        EntityProperty* newProperty = AllocateFor(static_cast<PropertyType>(propertyType));
+        if (newProperty)
+        {
+            newProperty->ReadFrom(file);
+			newProperty->UpdateEntity(this);
+            std::cerr << "Finished reading property of type: " << propertyType << std::endl;
+        }
+        else
+        {
+            std::cerr << "Failed to allocate property of type: " << propertyType << std::endl;
+        }
+    }
+    return true;
 }
 
 
