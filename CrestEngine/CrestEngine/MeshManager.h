@@ -2,6 +2,7 @@
 #include "Mesh.h"
 #include "MessageHandler.h"
 #include <list>
+#include <mutex>
 
 class MeshManager {
 
@@ -24,5 +25,6 @@ public:
 
 	unsigned int id;
 private:
+	std::mutex meshMutex;
 	static MeshManager* instance;
 };

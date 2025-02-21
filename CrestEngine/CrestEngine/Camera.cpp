@@ -24,10 +24,8 @@ namespace Camera {
 	float lastY = 600.0 / 2.0;
 	float fov = 45.0f;
 
-
-	void MoveCamera(glm::mat4& view) {
-
-
+	void MoveCamera(glm::mat4& view) 
+	{
 		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 	}
 	void MoveForward() {
@@ -56,7 +54,39 @@ namespace Camera {
 	void ChangeMoveSpeed(float newSpeed)
 	{
 		cameraSpeed = newSpeed;
-	}	
+	}
+	glm::vec3 GetCameraPos() 
+	{
+		return cameraPos;
+	}
+
+	void SetCameraPos(glm::vec3 newPos)
+	{
+		cameraPos = newPos;
+	}
+	// New functions to get and set camera rotation
+	glm::vec2 GetCameraRotation()
+	{
+		return glm::vec2(yaw, pitch);
+	}
+
+	void SetCameraRotation(float newYaw, float newPitch)
+	{
+		yaw = newYaw;
+		pitch = newPitch;
+
+		if (pitch > 89.0f)
+			pitch = 89.0f;
+		if (pitch < -89.0f)
+			pitch = -89.0f;
+
+		glm::vec3 direction;
+		direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+		direction.y = sin(glm::radians(pitch));
+		direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+		cameraFront = glm::normalize(direction);
+	}
+	
 
 	void SwitchCamera() 
 	{

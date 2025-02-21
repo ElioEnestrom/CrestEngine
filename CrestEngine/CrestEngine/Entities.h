@@ -41,6 +41,7 @@ public:
 
 	void UpdateProperties(Entity* property);
 
+
 	bool WriteTo(std::iostream& file) const override;
 	bool ReadFrom(std::iostream& file) override;
 private:
@@ -54,7 +55,11 @@ private:
 	
 	void DeleteEntity(Entity* toDelete);
 
+	void SaveLevel(std::iostream& file);
+	void LoadLevel(std::iostream& file);
+
 	std::vector<Entity*> entities;
 	int amountOfEntities = 0;
+	int amountOfLevels = 0;
  private:
  };

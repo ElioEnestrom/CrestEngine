@@ -22,30 +22,24 @@ Level::Level() : levelName("Level.binaryThingy", std::ios::in | std::ios::out | 
 //	return *instance;
 //}
 
-void Level::LoadLevel(EntityManager entityManager)
+void Level::LoadLevel(EntityManager& entityManager)
 {
 	levelName.clear();
 	levelName.seekg(0, std::ios::beg);
 
-	for (entities : entityManager.entities)
+	while (!entityManager.entities.empty())
 	{
-		entityManager.entities->DeleteEntity(entityManager.entities);
+		Entity* entity = entityManager.entities.back();
+		entityManager.DeleteEntity(entity);
 	}
 	
-	for (int i = 0; i < entityManager.amountOfEntities; i++)
-	{
-		entityManager.entities[i]->ReadFrom(levelName);
-	}
+	entityManager.LoadLevel(levelName);
 }
 
-void Level::SaveLevel(EntityManager entityManager)
+void Level::SaveLevel(EntityManager& entityManager)
 {
 	levelName.clear();
 	levelName.seekp(0, std::ios::beg);
 
-	for (int i = 0; i < entityManager.amountOfEntities; i++)
-	{
-		entityManager.entities[i]->UpdateProperties(entityManager.entities[i]);
-		entityManager.entities[i]->WriteTo(levelName);
-	}
+	entityManager.SaveLevel(levelName);
 }

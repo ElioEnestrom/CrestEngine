@@ -78,6 +78,8 @@ bool Entity::WriteTo(std::iostream& file) const
         return false;
     }
 
+
+
     //int numCustomProperties = properties.size();
     //std::cerr << "Writing number of custom properties: " << numCustomProperties << std::endl;
     //file.write(reinterpret_cast<const char*>(&numCustomProperties), sizeof(numCustomProperties));
@@ -154,5 +156,37 @@ bool Entity::ReadFrom(std::iostream& file)
 void EntityManager::DeleteEntity(Entity* toDelete)
 {
     entities.erase(std::remove(entities.begin(), entities.end(), toDelete), entities.end());
+	if (amountOfEntities > 0)
+        amountOfEntities--;
     delete toDelete;
+}
+
+void EntityManager::SaveLevel(std::iostream& file)
+{
+	int numEntities = amountOfEntities;
+	file.write(reinterpret_cast<const char*>(&numEntities), sizeof(numEntities));
+	if (!file) {
+		std::cerr << "Failed to write number of entities." << std::endl;
+		return;
+	}
+	for (Entity* entity : entities)
+	{
+		entity->UpdateProperties(entity);
+		entity->WriteTo(file);
+	}
+}
+
+void EntityManager::LoadLevel(std::iostream& file)
+{
+	int numEntities;
+	file.read(reinterpret_cast<char*>(&numEntities), sizeof(numEntities));
+	if (!file) {
+		std::cerr << "Failed to read number of entities." << std::endl;
+		return;
+	}
+	for (int i = 0; i < numEntities; i++)
+	{
+		Entity* entity = CreateEntity();
+		entity->ReadFrom(file);
+	}
 }

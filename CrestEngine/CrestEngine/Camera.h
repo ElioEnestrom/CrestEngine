@@ -11,6 +11,12 @@ namespace Camera {
 	void MoveDown();
 
 	void ChangeMoveSpeed(float newSpeed);
+	glm::vec3 GetCameraPos();
+
+	glm::vec2 GetCameraRotation();
+	void SetCameraRotation(float newYaw, float newPitch);
+
+	void SetCameraPos(glm::vec3 newPos);
 
 	void SwitchCamera();
 	void SwitchToCamera(GLFWwindow* window);

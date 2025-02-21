@@ -12,9 +12,9 @@ public:
 	//static void Allocate();
 	//static Level& Get();
 
-	void LoadLevel(EntityManager entityManager);
+	void LoadLevel(EntityManager& entityManager);
 
-	void SaveLevel(EntityManager entityManager);
+	void SaveLevel(EntityManager& entityManager);
 
 	std::fstream levelName;
 

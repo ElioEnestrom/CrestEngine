@@ -6,8 +6,8 @@
 #include <iostream>
 #include <list>
 #include <thread>
-#include <mutex>
 #include <filesystem>
+#include <future>
 
 MeshManager* MeshManager::instance = nullptr;
 MemoryChecker memoryChecker;
@@ -31,18 +31,19 @@ MeshManager& MeshManager::Get() {
 void MeshManager::ProcessMessage(Message* message)
 {
 	std::string msg = message->msg;
-	switch(message->type) {
-        case MessageType::Object:
-		    for (const auto& objMessage : objMessages) {
-		    	if (msg == objMessage.msg) {
-		    		std::string filename = message->msg;
-		    		loadOBJ(filename);
-		    		return;
-		    	}
-		    }
-        std::cerr << "Unknown message: " << msg << std::endl;
-        break;
-	}
+	    for (const auto& objMessage : objMessages) {
+	    	if (msg == objMessage.msg) {
+                std::async(std::launch::async, [=] {
+                    std::lock_guard<std::mutex> lock(meshMutex);
+
+                    std::string filename = message->msg;
+                    loadOBJ(filename);
+                    });
+                
+                return;
+	    	}
+	    }
+    std::cerr << "Unknown message: " << msg << std::endl;
 }
 
 void* MeshManager::loadOBJ(const std::string& filename)

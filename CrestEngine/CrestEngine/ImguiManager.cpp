@@ -5,6 +5,7 @@
 #include "Entities.h"
 #include "Level.h"
 #include "Mesh.h"
+#include "Camera.h"
 #include <map>
 
 
@@ -60,6 +61,7 @@ void ImguiManager::UpdateImGui(
 	{
 		Level level;
 		level.LoadLevel(entityManager);
+		currentlySelected = nullptr;
 		//Level::Get().LoadLevel(entityManager);
 
 	}
@@ -171,4 +173,24 @@ void ImguiManager::UpdateImGui(
 	
 	ImGui::End();
 
+	ImGui::Begin("Camera Controller");
+
+	glm::vec3 cameraPos = Camera::GetCameraPos();
+	float cameraPosArray[3] = { cameraPos.x, cameraPos.y, cameraPos.z };
+
+	ImGui::DragFloat3("Position", cameraPosArray, 0.01f, -FLT_MAX, FLT_MAX);
+
+	Camera::SetCameraPos(glm::vec3(cameraPosArray[0], cameraPosArray[1], cameraPosArray[2]));
+	
+	glm::vec2 cameraRotation = Camera::GetCameraRotation();
+	float cameraRotationArray[2] = { cameraRotation.x, cameraRotation.y };
+
+	ImGui::DragFloat("Yaw", &cameraRotationArray[0], 0.1f, -360.0f, 360.0f);
+	ImGui::DragFloat("Pitch", &cameraRotationArray[1], 0.1f, -89.0f, 89.0f);
+	Camera::SetCameraRotation(cameraRotationArray[0], cameraRotationArray[1]);
+
+	ImGui::End();
+
+	//Add another Imgui Window
+	
 }
