@@ -147,6 +147,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Collider.cpp" />
+    <ClCompile Include="Collision.cpp" />
     <ClCompile Include="Entities.cpp" />
     <ClCompile Include="EntityProperty.cpp" />
     <ClCompile Include="GeneralProperty.cpp" />
@@ -170,12 +172,17 @@
     <ClCompile Include="MessageQueue.cpp" />
     <ClCompile Include="ModelProperty.cpp" />
     <ClCompile Include="OBJLoader.cpp" />
+    <ClCompile Include="PhysicsManager.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="SphereCollider.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Time.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BoxCollider.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Collider.h" />
+    <ClInclude Include="Collision.h" />
     <ClInclude Include="Entities.h" />
     <ClInclude Include="EntityProperty.h" />
     <ClInclude Include="GeneralProperty.h" />
@@ -191,7 +198,9 @@
     <ClInclude Include="MessageQueue.h" />
     <ClInclude Include="ModelProperty.h" />
     <ClInclude Include="OBJLoader.h" />
+    <ClInclude Include="PhysicsManager.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="SphereCollider.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Time.h" />
   </ItemGroup>
