@@ -3,9 +3,10 @@
 #include "BoxCollider.h"
 
 
+
 void PhysicsManager::SimulatePhysics(const float& deltaTime)
 {
-	std::vector<Collider*> colliders = UpdatePhysicsScene();
+	colliders = UpdatePhysicsScene();
 
 	std::vector<Collision> collisions = CheckCollisions(colliders);
 
@@ -138,4 +139,88 @@ bool PhysicsManager::BoxBoxIntersect(BoxCollider& box1, BoxCollider& box2)
 	}
 
 	return true;
+}
+
+bool PhysicsManager::RayCast(Ray& aRay, RayHit& aHit)
+{
+	for (Collider* c : colliders) {
+		if (CheckRayIntersect(aRay, c))
+		{
+			aHit.collider = c;
+			aHit.point = glm::vec3(0, 0, 0);
+			aHit.distance = 0.0f;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool PhysicsManager::CheckRayIntersect(const Ray& aRay, Collider* aCollider)
+{
+	if (aCollider->isOf<SphereCollider>())
+	{
+		SphereCollider* sphere = dynamic_cast<SphereCollider*>(aCollider);
+		return RaySphereIntersect(aRay, *sphere);
+	}
+	else if (aCollider->isOf<BoxCollider>())
+	{
+		BoxCollider* box = dynamic_cast<BoxCollider*>(aCollider);
+		return RayBoxIntersect(aRay, *box);
+	}
+}
+
+bool PhysicsManager::RaySphereIntersect(const Ray& aRay, SphereCollider& aSphere)
+{
+	glm::vec3 diff = aSphere.center - aRay.origin;
+	float t0 = glm::dot(diff, aRay.direction);
+
+	float dSquared = glm::dot(diff, diff) - t0 * t0;
+
+	float radiusSquared = aSphere.radius * aSphere.radius;
+	if (dSquared > radiusSquared)
+	{
+		return false;
+	}
+
+	float t1 = glm::sqrt(radiusSquared - dSquared);
+
+	float Epsilon = 0.0001f;
+	float outIntersectionDistance = (t0 > t1) ? t0 - t1 : t0 + t1;
+
+	return outIntersectionDistance >= Epsilon;
+}
+
+bool PhysicsManager::RayBoxIntersect(const Ray& aRay, BoxCollider& aBox)
+{
+	glm::vec3 min = glm::vec3(aBox.transform[3]) - aBox.extents;
+	glm::vec3 max = glm::vec3(aBox.transform[3]) + aBox.extents;
+
+	glm::vec3 invDir = 1.0f / aRay.direction;
+
+	float t1 = (min.x - aRay.origin.x) * invDir.x;
+	float t2 = (max.x - aRay.origin.x) * invDir.x;
+	float t3 = (min.y - aRay.origin.y) * invDir.y;
+	float t4 = (max.y - aRay.origin.y) * invDir.y;
+	float t5 = (min.z - aRay.origin.z) * invDir.z;
+	float t6 = (max.z - aRay.origin.z) * invDir.z;
+
+	float tmin = glm::max(glm::max(glm::min(t1, t2), glm::min(t3, t4)), glm::min(t5, t6));
+	float tmax = glm::min(glm::min(glm::max(t1, t2), glm::max(t3, t4)), glm::max(t5, t6));
+
+	return tmax >= std::max(0.0f, tmin);
+}
+
+bool PhysicsManager::RayOBBIntersect(const Ray& aRay, BoxCollider& aBox)
+{
+	glm::vec3 center = glm::vec3(aBox.transform[3]);
+	glm::mat3 rotation = glm::mat3(aBox.transform);
+
+	glm::vec3 localOrigin = glm::transpose(rotation) * (aRay.origin - center);
+	glm::vec3 localDirection = glm::transpose(rotation) * aRay.direction;
+
+	BoxCollider localBox = BoxCollider(glm::vec3(0.0f), aBox.extents);
+	localBox.extents = aBox.extents;
+
+	Ray localRay = Ray(localOrigin, localDirection);
+	return RayBoxIntersect(localRay, localBox);
 }
