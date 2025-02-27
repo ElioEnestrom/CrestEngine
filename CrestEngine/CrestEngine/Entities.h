@@ -5,6 +5,7 @@
 #include "ModelProperty.h"
 #include "GraphicProperty.h"
 #include "EntityProperty.h"
+#include "Collision.h"
 
 #include <glad/glad.h>
 #include <string>
@@ -19,6 +20,8 @@ public:
 	//glm::mat4 transform;
 	glm::vec3 position;
 	glm::vec3 rotation;
+	glm::mat4 transform;
+
 	float entityPosition[3] = {0.0f, -5.0f, -20.0f};
 	float entityRotation[3] = {0.0f, 0.0f, 0.0f};
 	float textureMixer = 0.0f;
@@ -29,6 +32,7 @@ public:
 	ModelProperty modelProperty;
 	GraphicProperty graphicProperty;
 	
+	Physics::Collider* GetCollider();
 
 	EntityProperty* AllocateFor(PropertyType type); 
 	void AddProperty(EntityProperty* property); // Add method to add properties
@@ -45,6 +49,7 @@ public:
 	bool WriteTo(std::iostream& file) const override;
 	bool ReadFrom(std::iostream& file) override;
 private:
+	Physics::Collider* myCollider;
 };
 
 
@@ -52,6 +57,8 @@ private:
  class EntityManager {
  public:
 	Entity* CreateEntity();
+	static void Allocate();
+	static EntityManager& Get();
 	
 	void DeleteEntity(Entity* toDelete);
 
@@ -61,5 +68,7 @@ private:
 	std::vector<Entity*> entities;
 	int amountOfEntities = 0;
 	int amountOfLevels = 0;
+
  private:
+	 static EntityManager* instance;
  };

@@ -1,6 +1,9 @@
 #pragma once
 #include "glm/glm.hpp"
-#include "Collider.h"
+
+namespace Physics {
+	class Collider;
+}
 
 class Ray {
 public:
@@ -16,13 +19,13 @@ public:
 struct RayHit {
 public:
 	RayHit() {}
-	RayHit(glm::vec3 aPoint, Collider* aCollider, float aDistance) {
+	RayHit(glm::vec3 aPoint, Physics::Collider* aCollider, float aDistance) {
 		point = aPoint;
 		collider = aCollider;
 		distance = aDistance;
 	}
 
 	glm::vec3 point;
-	Collider* collider;
+	Physics::Collider* collider;
 	float distance;
 };

@@ -147,7 +147,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Collider.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="Entities.cpp" />
     <ClCompile Include="EntityProperty.cpp" />
@@ -163,6 +162,7 @@
     <ClCompile Include="imgui_tables.cpp" />
     <ClCompile Include="imgui_widgets.cpp" />
     <ClCompile Include="Input.cpp" />
+    <ClCompile Include="Intersect.cpp" />
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MemoryChecker.cpp" />
@@ -174,14 +174,11 @@
     <ClCompile Include="OBJLoader.cpp" />
     <ClCompile Include="PhysicsManager.cpp" />
     <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="SphereCollider.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Time.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BoxCollider.h" />
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="Collider.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="Entities.h" />
     <ClInclude Include="EntityProperty.h" />
@@ -190,6 +187,7 @@
     <ClInclude Include="ImguiManager.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Interface.h" />
+    <ClInclude Include="Intersect.h" />
     <ClInclude Include="Level.h" />
     <ClInclude Include="MemoryChecker.h" />
     <ClInclude Include="Mesh.h" />
@@ -199,6 +197,7 @@
     <ClInclude Include="ModelProperty.h" />
     <ClInclude Include="OBJLoader.h" />
     <ClInclude Include="PhysicsManager.h" />
+    <ClInclude Include="RayCast.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SphereCollider.h" />
     <ClInclude Include="Texture.h" />

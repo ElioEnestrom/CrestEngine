@@ -1,4 +1,5 @@
 #include "Entities.h"
+#include "Collision.h"
 #include <sstream>
     
 Entity* EntityManager::CreateEntity()
@@ -33,6 +34,23 @@ Entity* EntityManager::CreateEntity()
     entities.push_back(newEntity);
 
     return newEntity;
+}
+
+void EntityManager::Allocate()
+{
+	if (instance != nullptr)
+		return;
+	instance = new EntityManager();
+}
+
+EntityManager& EntityManager::Get()
+{
+	return *instance;
+}
+
+Physics::Collider* Entity::GetCollider()
+{
+    return myCollider;
 }
 
 EntityProperty* Entity::AllocateFor(PropertyType type)

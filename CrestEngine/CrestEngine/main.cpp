@@ -93,6 +93,7 @@ int main()
 	std::vector<Vertex> currentObject;
 
 	MeshManager::Allocate();
+	EntityManager::Allocate();
 
     for (auto& message : MeshManager::Get().objMessages) {
         MessageQueue::Get().QueueMessage(&message);
@@ -158,7 +159,7 @@ int main()
 	float yLocation = 0;
 	//glm::mat4 trans = glm::mat4(1.0f);
 
-	EntityManager entityManager;
+	EntityManager& entityManager = EntityManager::Get();
 	Entity* currentlySelected = nullptr;
 	bool drawCubes = true;
 	//float cubePosition[3] = { 0, -5, -10.0f };
