@@ -17,6 +17,7 @@
 
 #include "OBJLoader.h"
 #include "ImguiManager.h"
+#include "PhysicsManager.h"
 
 #include <thread>
 #include <mutex>
@@ -194,6 +195,8 @@ int main()
 	{
 	    Input::ActivateInput(window);
 	    Time::DeltaTime();
+		Physics::PhysicsManager physicsManager;
+		physicsManager.SimulatePhysics(Time::DeltaTime());
 	
 	    glClearColor(0.4, 0.3, 0.2, 1);
 	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

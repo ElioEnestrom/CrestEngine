@@ -2,6 +2,8 @@
 #include "Collision.h"
 #include <sstream>
     
+EntityManager* EntityManager::instance = nullptr;
+
 Entity* EntityManager::CreateEntity()
 {
     Entity* newEntity = new Entity();
@@ -32,6 +34,8 @@ Entity* EntityManager::CreateEntity()
     amountOfEntities++;
     
     entities.push_back(newEntity);
+
+	newEntity->CreateSphereCollider(1.0f);
 
     return newEntity;
 }
@@ -69,6 +73,17 @@ void Entity::AddProperty(EntityProperty* property)
 {
     properties.push_back(property);
 }
+
+void Entity::CreateSphereCollider(const float& aRadius)
+{
+	myCollider = new Physics::SphereCollider(position, aRadius);
+}
+
+void Entity::CreateBoxCollider(const glm::vec3& someExtents)
+{
+	myCollider = new Physics::BoxCollider(position, someExtents);
+}
+
 
 void Entity::UpdateProperties(Entity* property)
 {

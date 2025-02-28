@@ -36,6 +36,8 @@ public:
 
 	EntityProperty* AllocateFor(PropertyType type); 
 	void AddProperty(EntityProperty* property); // Add method to add properties
+	void CreateSphereCollider(const float& aRadius);
+	void CreateBoxCollider(const glm::vec3& someExtents);
 
 	std::vector<EntityProperty*> properties;
 
@@ -48,8 +50,9 @@ public:
 
 	bool WriteTo(std::iostream& file) const override;
 	bool ReadFrom(std::iostream& file) override;
+
 private:
-	Physics::Collider* myCollider;
+	Physics::Collider* myCollider = nullptr;
 };
 
 

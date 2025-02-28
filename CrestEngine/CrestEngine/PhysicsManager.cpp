@@ -16,6 +16,7 @@ namespace Physics {
 		float limitDt = glm::min(deltaTime, 0.02f);
 
 		for (Collider* collider : colliders) {
+			std::cout << "Collider: " << collider->position.x << " " << collider->position.y << " " << collider->position.z << std::endl;
 			collider->ComputeInertia();
 		}
 
@@ -188,6 +189,7 @@ namespace Physics {
 		std::vector<Collider*> cols;
 
 		cols.push_back(main_plane);
+
 
 		for (Entity* c : EntityManager::Get().entities)
 		{

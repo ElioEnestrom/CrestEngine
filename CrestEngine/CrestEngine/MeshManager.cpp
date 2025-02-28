@@ -33,6 +33,7 @@ void MeshManager::ProcessMessage(Message* message)
 	std::string msg = message->msg;
 	    for (const auto& objMessage : objMessages) {
 	    	if (msg == objMessage.msg) {
+
                 std::async(std::launch::async, [=] {
                     std::lock_guard<std::mutex> lock(meshMutex);
 
