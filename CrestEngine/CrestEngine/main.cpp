@@ -182,6 +182,7 @@ int main()
 	int texture2Index = 1;
 	int currentTextureIndex = 0; 
 	float textureMixer = 0.35f;
+	Physics::PhysicsManager physicsManager;
 
 	glfwSetKeyCallback(window, key_callback);
 	//std::thread messageThread([] {
@@ -195,7 +196,6 @@ int main()
 	{
 	    Input::ActivateInput(window);
 	    Time::DeltaTime();
-		Physics::PhysicsManager physicsManager;
 		physicsManager.SimulatePhysics(Time::DeltaTime());
 	
 	    glClearColor(0.4, 0.3, 0.2, 1);

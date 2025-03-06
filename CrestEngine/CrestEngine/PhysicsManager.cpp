@@ -15,12 +15,16 @@ namespace Physics {
 	{
 		float limitDt = glm::min(deltaTime, 0.02f);
 
+		std::cerr << colliders.size();
 		for (Collider* collider : colliders) {
-			std::cout << "Collider: " << collider->position.x << " " << collider->position.y << " " << collider->position.z << std::endl;
+			//std::cout << "Collider: " << collider->position.x << " " << collider->position.y << " " << collider->position.z << std::endl;
 			collider->ComputeInertia();
 		}
 
+		std::cerr << colliders.size();
+
 		colliders = UpdatePhysicsScene();
+
 		std::vector<Collision> collisions = CheckIntersections(colliders);
 
 		ApplyGravity(colliders, limitDt);
@@ -30,6 +34,11 @@ namespace Physics {
 		ApplyVelocity(colliders, limitDt);
 
 		UpdateVisuals();
+		
+		//for (Collider* collider : colliders) 
+		//{
+		//	std::cout << "Collider: " << collider->position.x << " " << collider->position.y << " " << collider->position.z << std::endl;
+		//}
 	}
 	
 	void PhysicsManager::ApplyVelocity(std::vector<Collider*> colliders, const float& deltaTime)
@@ -188,7 +197,7 @@ namespace Physics {
 
 		std::vector<Collider*> cols;
 
-		cols.push_back(main_plane);
+		//cols.push_back(main_plane);
 
 
 		for (Entity* c : EntityManager::Get().entities)
@@ -222,6 +231,8 @@ namespace Physics {
 
 	void PhysicsManager::ApplyGravity(std::vector<Collider*> colliders, const float& deltaTime)
 	{
+		std::cerr << colliders.size();
+		//std::cerr << colliders.size() << std::endl;
 		for (Collider* c : colliders)
 		{
 			if (!c->isKinematic && c->hasGravity)

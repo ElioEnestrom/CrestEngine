@@ -54,7 +54,7 @@ namespace Physics {
 			velocity = glm::vec3(0.0f);
 			angularVelocity = glm::vec3(0, 0, 0);
 			position = glm::vec3(0, 0, 0);
-			hasGravity = false;
+			hasGravity = true;
 			center = aCenter;
 			radius = aRadius;
 			mass = 1;
