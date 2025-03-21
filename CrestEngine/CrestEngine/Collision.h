@@ -17,6 +17,7 @@ namespace Physics {
 		  }
 
 		  virtual void ComputeInertia() = 0;
+		  virtual const char* GetTypeName() const = 0;
 
 		  glm::mat4 transform;
 		  glm::vec3 center;
@@ -49,12 +50,16 @@ namespace Physics {
 	class SphereCollider : public Collider
 	{
 	public:
+		const char* GetTypeName() const override {
+			return "Sphere";
+		}
+
 		SphereCollider(const glm::vec3& aCenter, const float& aRadius) {
 
 			velocity = glm::vec3(0.0f);
 			angularVelocity = glm::vec3(0, 0, 0);
 			position = glm::vec3(0, 0, 0);
-			hasGravity = true;
+			hasGravity = false;
 			center = aCenter;
 			radius = aRadius;
 			mass = 1;
@@ -73,6 +78,10 @@ namespace Physics {
 
 	class BoxCollider : public Collider {
 	public:
+		const char* GetTypeName() const override {
+			return "Box";
+		}
+
 		BoxCollider(const glm::vec3& aCenter, const glm::vec3& someExtents)
 		{
 			velocity = glm::vec3(0, 0, 0);
@@ -96,6 +105,9 @@ namespace Physics {
 	class PlaneCollider : public Collider
 	{
 	public:
+		const char* GetTypeName() const override {
+			return "Plane";
+		}
 		PlaneCollider(const glm::vec3& aNormal, float aDistance)
 		{
 			velocity = glm::vec3(0, 0, 0);

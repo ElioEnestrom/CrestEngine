@@ -90,13 +90,16 @@ void ImguiManager::UpdateImGui(
 
 	if (currentlySelected) {
 
-		
-
-
+		float entityPosition[3] = { currentlySelected->entityPosition[0], currentlySelected->entityPosition[1], currentlySelected->entityPosition[2] };
+		float entityRotation[3] = { currentlySelected->entityRotation[0], currentlySelected->entityRotation[1], currentlySelected->entityRotation[2] };
 
 		ImGui::InputText("Name", &currentlySelected->name[0], currentlySelected->name.size() + 1);
-		ImGui::DragFloat3("Position", currentlySelected->entityPosition, 0.01f, -FLT_MAX, FLT_MAX);
-		ImGui::DragFloat3("Rotation", currentlySelected->entityRotation, 0.01f, -FLT_MAX, FLT_MAX);
+		ImGui::DragFloat3("Position", entityPosition, 0.01f, -FLT_MAX, FLT_MAX);
+		ImGui::DragFloat3("Rotation", entityRotation, 0.01f, -FLT_MAX, FLT_MAX);
+		
+		currentlySelected->entityPosition = glm::vec3(entityPosition[0], entityPosition[1], entityPosition[2]);
+		currentlySelected->entityRotation = glm::vec3(entityRotation[0], entityRotation[1], entityRotation[2]);
+
 
 		const char* comboPreviewValue = modelNames[currentModelIndex].c_str(); // Preview value
 		if (ImGui::BeginCombo("Select Model", comboPreviewValue))
@@ -147,7 +150,7 @@ void ImguiManager::UpdateImGui(
 		}
 		ImGui::PopItemWidth();
 
-		ImGui::SameLine(); // Place the next combo box next to the previous one
+		ImGui::SameLine(); 
 
 		// Combo box for the second texture
 		ImGui::PushItemWidth(100);
@@ -168,7 +171,35 @@ void ImguiManager::UpdateImGui(
 			ImGui::EndCombo();
 		}
 		ImGui::PopItemWidth();
-		ImGui::SliderFloat("Texture Mixer", &currentlySelected->textureMixer, 0.0f, 1.0f);
+		ImGui::SliderFloat("Texture Mixer", &currentlySelected->textureMixer, 0.0f, 1.0f); 
+
+
+		const char* colliderType = currentlySelected->myCollider ? currentlySelected->myCollider->GetTypeName() : "None";
+		if (ImGui::BeginCombo("Collider Type", colliderType))
+		{
+			if (currentlySelected->myCollider)
+			{
+				if (ImGui::Selectable("Sphere", strcmp(colliderType, "SphereCollider") == 0))
+				{
+					currentlySelected->CreateSphereCollider(1.0f);
+				}
+				if (ImGui::Selectable("Box", strcmp(colliderType, "BoxCollider") == 0))
+				{
+					currentlySelected->CreateBoxCollider(glm::vec3(1.0f, 1.0f, 1.0f));
+				}
+			}
+			ImGui::EndCombo();
+		}
+
+
+		if (currentlySelected->myCollider) {
+			ImGui::Checkbox("Is Kinematic", &currentlySelected->myCollider->isKinematic);
+			if (!currentlySelected->myCollider->isKinematic) 
+			{
+				ImGui::SameLine();
+				ImGui::Checkbox("Has Gravity", &currentlySelected->myCollider->hasGravity);
+			}
+		}
 	}
 	
 	ImGui::End();

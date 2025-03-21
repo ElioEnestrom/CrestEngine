@@ -76,6 +76,7 @@ int main()
 	}
 	glEnable(GL_DEPTH_TEST);
 
+	glfwSwapInterval(1);
 
 #pragma endregion 
 
@@ -195,9 +196,10 @@ int main()
 	while (!glfwWindowShouldClose(window))
 	{
 	    Input::ActivateInput(window);
-	    Time::DeltaTime();
-		physicsManager.SimulatePhysics(Time::DeltaTime());
-	
+		float deltaTime = Time::DeltaTime();
+		//std::cout << Time::DeltaTime() << std::endl;
+		physicsManager.SimulatePhysics(deltaTime);
+
 	    glClearColor(0.4, 0.3, 0.2, 1);
 	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	

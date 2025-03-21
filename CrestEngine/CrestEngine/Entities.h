@@ -22,8 +22,8 @@ public:
 	glm::vec3 rotation;
 	glm::mat4 transform;
 
-	float entityPosition[3] = {0.0f, -5.0f, -20.0f};
-	float entityRotation[3] = {0.0f, 0.0f, 0.0f};
+	glm::vec3 entityPosition;
+	glm::vec3 entityRotation;
 	float textureMixer = 0.0f;
 	int textureIndex1 = 0;
 	int textureIndex2 = 0;
@@ -51,8 +51,8 @@ public:
 	bool WriteTo(std::iostream& file) const override;
 	bool ReadFrom(std::iostream& file) override;
 
-private:
 	Physics::Collider* myCollider = nullptr;
+private:
 };
 
 

@@ -9,19 +9,19 @@ namespace Physics {
 	PhysicsManager::PhysicsManager()
 	{
 		main_plane = new PlaneCollider(glm::vec3(0, 1, 0), 1);
-		main_plane->position = glm::vec3(0, 0, 0);
+		main_plane->position = glm::vec3(0, -10, 0);
 	}
 	void PhysicsManager::SimulatePhysics(const float& deltaTime)
 	{
 		float limitDt = glm::min(deltaTime, 0.02f);
 
-		std::cerr << colliders.size();
+		//std::cout << limitDt << std::endl;
+
 		for (Collider* collider : colliders) {
 			//std::cout << "Collider: " << collider->position.x << " " << collider->position.y << " " << collider->position.z << std::endl;
 			collider->ComputeInertia();
 		}
 
-		std::cerr << colliders.size();
 
 		colliders = UpdatePhysicsScene();
 
@@ -43,10 +43,15 @@ namespace Physics {
 	
 	void PhysicsManager::ApplyVelocity(std::vector<Collider*> colliders, const float& deltaTime)
 	{
+
+		//std::cout << deltaTime << std::endl;
 		for (Collider* c : colliders)
 		{
 			if (!c->isKinematic)
 			{
+				//std::cerr << c->position.x << " " << c->position.y << " " << c->position.z << std::endl;
+				//std::cerr << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl;
+
 				c->position += c->velocity * deltaTime;
 				c->transform[3] = glm::vec4(c->position, 1.0f);
 
@@ -197,7 +202,7 @@ namespace Physics {
 
 		std::vector<Collider*> cols;
 
-		//cols.push_back(main_plane);
+		cols.push_back(main_plane);
 
 
 		for (Entity* c : EntityManager::Get().entities)
@@ -207,8 +212,9 @@ namespace Physics {
 			{
 				glm::mat4 trans = c->transform;
 
-				col->transform = trans;
-				col->position = glm::vec3(trans[3]);
+				//col->transform = trans;
+				//col->position = glm::vec3(trans[3]);
+				col->position = c->entityPosition;
 
 				cols.push_back(col);
 			}
@@ -224,20 +230,25 @@ namespace Physics {
 			Collider* col = c->GetCollider();
 			if (col != nullptr)
 			{
-				c->transform = col->transform;
+				//std::cout << "Collider: " << col->position.x << " " << col->position.y << " " << col->position.z << std::endl;
+				//c->transform = col->transform;
+				c->entityPosition = col->position;
 			}
 		}
 	}
 
 	void PhysicsManager::ApplyGravity(std::vector<Collider*> colliders, const float& deltaTime)
 	{
-		std::cerr << colliders.size();
-		//std::cerr << colliders.size() << std::endl;
+		//std::cerr << deltaTime << std::endl;
 		for (Collider* c : colliders)
 		{
 			if (!c->isKinematic && c->hasGravity)
 			{
+				//std::cerr << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl;
+
 				c->velocity += glm::vec3(0, GravityMultiplier, 0) * deltaTime;
+
+				//std::cerr << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl;
 			}
 		}
 	}

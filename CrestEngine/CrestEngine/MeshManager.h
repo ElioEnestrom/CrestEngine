@@ -20,7 +20,8 @@ public:
 	std::vector<Message> objMessages = {
 		{MessageType::Object, "Flag.obj"},
 		{MessageType::Object, "Viking_House.obj"},
-		{MessageType::Object, "Cube.obj"}
+		{MessageType::Object, "Cube.obj"},
+		{MessageType::Object, "MySphere.obj"}
 	};
 
 	unsigned int id;

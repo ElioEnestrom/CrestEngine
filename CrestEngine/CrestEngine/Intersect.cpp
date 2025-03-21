@@ -31,10 +31,12 @@ namespace Physics {
 
 	Collision SphereBoxIntersect(SphereCollider& aSphere2, BoxCollider& aBox1)
 	{
+		std::cerr << "SphereBoxIntersect" << std::endl;
 		glm::vec3 sphereCenter = glm::vec3(aSphere2.transform[3]);
 		glm::vec3 localSphereCenter = glm::inverse(aBox1.transform) * glm::vec4(sphereCenter, 1.0f);
 		glm::vec3 closestPoint = glm::clamp(localSphereCenter, -aBox1.extents, aBox1.extents);
 		float dist2 = glm::length2(localSphereCenter - closestPoint);
+		std::cout << dist2 << std::endl;
 
 		if (dist2 < aSphere2.radius * aSphere2.radius)
 		{
@@ -128,9 +130,10 @@ namespace Physics {
 		glm::vec3 contactPoint = glm::vec3(aBox1.transform[3]) + normal * minPenetration * 0.5f;
 
 		return { const_cast<BoxCollider*>(&aBox1), const_cast<BoxCollider*>(&aBox2), contactPoint, normal };
-	}
+	}	
 	Collision PlaneBoxIntersect(const PlaneCollider& aPlane, const BoxCollider& aBox)
 	{
+		//std::cerr << "PlaneBoxIntersect" << std::endl;
 		glm::vec3 boxCenter = glm::vec3(aBox.transform[3]);
 		glm::mat3 boxRotation = glm::mat3(aBox.transform);  // Extract the rotation matrix of the box
 
@@ -148,8 +151,15 @@ namespace Physics {
 		// Calculate the distance from the center of the box to the plane
 		float distance = glm::dot(normal, transformedCenter) - d;
 
+		std::cout << "halfExtents: " << halfExtents.z << std::endl;
+		std::cout << "distance: " << distance << std::endl;
+
+
 		// Step 4: Penetration depth check
 		float penetrationDepth = halfExtents.z - glm::abs(distance);
+
+		std::cout << "penetrationDepth" << penetrationDepth << std::endl << std::endl;
+
 		if (penetrationDepth > 0)  // Box is penetrating the plane
 		{
 			// Step 5: Get the box's local corners
