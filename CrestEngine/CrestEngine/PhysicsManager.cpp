@@ -4,12 +4,13 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/quaternion.hpp"
 #include "Entities.h"
+#include "glm/gtc/matrix_transform.hpp"
 
 namespace Physics {
 	PhysicsManager::PhysicsManager()
 	{
 		main_plane = new PlaneCollider(glm::vec3(0, 1, 0), 1);
-		main_plane->position = glm::vec3(0, -10, 0);
+		main_plane->position = glm::vec3(0, -7, 0);
 	}
 	void PhysicsManager::SimulatePhysics(const float& deltaTime)
 	{
@@ -41,56 +42,84 @@ namespace Physics {
 		//}
 	}
 	
-	void PhysicsManager::ApplyVelocity(std::vector<Collider*> colliders, const float& deltaTime)
-	{
+    void PhysicsManager::ApplyVelocity(std::vector<Collider*> colliders, const float& deltaTime)
+    {
+		const float velocityThreshold = 0.0001f;
+        for (Collider* c : colliders)
+        {
+            if (!c->isKinematic)
+            {
+                c->position += c->velocity * deltaTime;
+                c->transform[3] = glm::vec4(c->position, 1.0f);
 
-		//std::cout << deltaTime << std::endl;
-		for (Collider* c : colliders)
-		{
-			if (!c->isKinematic)
-			{
-				//std::cerr << c->position.x << " " << c->position.y << " " << c->position.z << std::endl;
-				//std::cerr << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl;
+                float maxAngularVelocity = 3;
+                if (glm::length(c->angularVelocity) > maxAngularVelocity)
+                {
+                    c->angularVelocity = glm::normalize(c->angularVelocity) * maxAngularVelocity;
+                }
 
-				c->position += c->velocity * deltaTime;
-				c->transform[3] = glm::vec4(c->position, 1.0f);
+                if (glm::length(c->angularVelocity) > 0.0001f)
+                {
+                    glm::vec3 angularVelocityNorm = glm::normalize(c->angularVelocity);
+                    glm::quat angularRotation = glm::angleAxis(glm::length(c->angularVelocity) * deltaTime, angularVelocityNorm);
+                    glm::mat3 rotationDelta = glm::mat3_cast(angularRotation);
+                    c->transform = glm::mat4(rotationDelta) * c->transform;
+                }
 
-				float maxAngularVelocity = 3;
-				if (glm::length(c->angularVelocity) > maxAngularVelocity)
+                if (c->mass > 0)
+                {
+					std::cout << "Velocity: " << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl;
+                    c->velocity *= glm::pow(1.0f - LinearDrag, deltaTime);
+					std::cout << "Velocity: " << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl;
+                }
+
+                if (c->mass > 0)
+                {
+                    c->angularVelocity *= glm::exp(-AngularDrag * deltaTime);
+                }
+
+
+				// Failsafe mechanism to stop very slow objects on each axis individually
+				if (glm::abs(c->velocity.x) < velocityThreshold)
 				{
-					c->angularVelocity = glm::normalize(c->angularVelocity) * maxAngularVelocity;
+					c->velocity.x = 0.0f;
+				}
+				if (glm::abs(c->velocity.y) < velocityThreshold)
+				{
+					c->velocity.y = 0.0f;
+				}
+				if (glm::abs(c->velocity.z) < velocityThreshold)
+				{
+					c->velocity.z = 0.0f;
+				}
+				if (glm::abs(c->angularVelocity.x) < velocityThreshold)
+				{
+					c->angularVelocity.x = 0.0f;
+				}
+				if (glm::abs(c->angularVelocity.y) < velocityThreshold)
+				{
+					c->angularVelocity.y = 0.0f;
+				}
+				if (glm::abs(c->angularVelocity.z) < velocityThreshold)
+				{
+					c->angularVelocity.z = 0.0f;
 				}
 
-				if (glm::length(c->angularVelocity) > 0.0001f)
-				{
-					glm::vec3 angularVelocityNorm = glm::normalize(c->angularVelocity);
-					glm::quat angularRotation = glm::angleAxis(glm::length(c->angularVelocity) * deltaTime, angularVelocityNorm);
-					glm::mat3 rotationDelta = glm::mat3_cast(angularRotation);
-					c->transform = glm::mat4(rotationDelta) * c->transform;
-				}
+                //std::cout << "Angular Velocity: " << c->angularVelocity.x << " " << c->angularVelocity.y << " " << c->angularVelocity.z << std::endl;
+                //std::cout << "Velocity: " << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl << std::endl;
 
-				if (c->mass > 0)
-				{
-					c->velocity *= glm::pow(1.0f - LinearDrag, deltaTime);
-				}
-
-				if (c->mass > 0)
-				{
-					c->angularVelocity *= glm::exp(-AngularDrag * deltaTime);
-				}
-
-				// inertia tensor in world space
-				glm::mat3 rotationMatrix = glm::mat3(c->transform);
-				glm::mat3 inertiaTensorInWorldSpace = rotationMatrix * c->momentOfInertia * glm::transpose(rotationMatrix);
-				c->inverseMomentOfInertia = glm::inverse(inertiaTensorInWorldSpace);
-			}
-			else
-			{
-				c->velocity = glm::vec3(0, 0, 0);
-				c->angularVelocity = glm::vec3(0, 0, 0);
-			}
-		}
-	}
+                // inertia tensor in world space
+                glm::mat3 rotationMatrix = glm::mat3(c->transform);
+                glm::mat3 inertiaTensorInWorldSpace = rotationMatrix * c->momentOfInertia * glm::transpose(rotationMatrix);
+                c->inverseMomentOfInertia = glm::inverse(inertiaTensorInWorldSpace);
+            }
+            else
+            {
+                c->velocity = glm::vec3(0, 0, 0);
+                c->angularVelocity = glm::vec3(0, 0, 0);
+            }
+        }
+    }
 	
 	void PhysicsManager::HandleCollision(std::vector<Collision> collisions)
 	{
@@ -149,7 +178,9 @@ namespace Physics {
 			glm::vec3 impulse = impulseMagnitude * n;
 
 			// Apply impulse to linear velocity
+			//std::cout << "Before Impulse Velocity: " << dynamicCollider->velocity.x << " " << dynamicCollider->velocity.y << " " << dynamicCollider->velocity.z << std::endl;
 			dynamicCollider->velocity += impulse * invMass;
+			//std::cout << "After Impulse Velocity: " << dynamicCollider->velocity.x << " " << dynamicCollider->velocity.y << " " << dynamicCollider->velocity.z << std::endl;
 
 			// angular velocity (considering moment of inertia)
 			dynamicCollider->angularVelocity += dynamicCollider->inverseMomentOfInertia * glm::cross(r, impulse);
@@ -176,14 +207,23 @@ namespace Physics {
 			glm::vec3 relativeVelocity = c.collider2->velocity - c.collider1->velocity;
 			float velocityAlongNormal = glm::dot(relativeVelocity, normal);
 
+			//std::cout << "Relative Velocity: " << relativeVelocity.x << " " << relativeVelocity.y << " " << relativeVelocity.z << std::endl;
+			//std::cout << "Velocity Along Normal: " << velocityAlongNormal << std::endl << std::endl;
+
 			if (velocityAlongNormal > 0) continue;
 
 			float impulse = (1 + Restitution) * velocityAlongNormal;
 
 			glm::vec3 impulseVector = impulse * normal;
+			
+			std::cout << "Before Impulse Velocity Collider1: " << c.collider1->velocity.x << " " << c.collider1->velocity.y << " " << c.collider1->velocity.z << std::endl;
+			std::cout << "Before Impulse Velocity Collider2: " << c.collider2->velocity.x << " " << c.collider2->velocity.y << " " << c.collider2->velocity.z << std::endl;
 
 			c.collider1->velocity += impulseVector;
 			c.collider2->velocity -= impulseVector;
+
+			std::cout << "After Impulse Velocity Collider1: " << c.collider1->velocity.x << " " << c.collider1->velocity.y << " " << c.collider1->velocity.z << std::endl;
+			std::cout << "After Impulse Velocity Collider2: " << c.collider2->velocity.x << " " << c.collider2->velocity.y << " " << c.collider2->velocity.z << std::endl;
 
 			glm::vec3 r1 = c.point - c.collider1->position;
 			glm::vec3 r2 = c.point - c.collider2->position;
@@ -199,23 +239,22 @@ namespace Physics {
 	
 	std::vector<Collider*> PhysicsManager::UpdatePhysicsScene()
 	{
-
 		std::vector<Collider*> cols;
 
 		cols.push_back(main_plane);
-
 
 		for (Entity* c : EntityManager::Get().entities)
 		{
 			Collider* col = c->GetCollider();
 			if (col != nullptr)
 			{
-				glm::mat4 trans = c->transform;
+				glm::mat4 trans = c->GetTransform(); 
 
-				//col->transform = trans;
 				//col->position = glm::vec3(trans[3]);
-				col->position = c->entityPosition;
-
+				col->transform = trans;
+				col->position = glm::vec3(trans[3]);
+				
+				
 				cols.push_back(col);
 			}
 		}
@@ -232,7 +271,17 @@ namespace Physics {
 			{
 				//std::cout << "Collider: " << col->position.x << " " << col->position.y << " " << col->position.z << std::endl;
 				//c->transform = col->transform;
-				c->entityPosition = col->position;
+				//c->entityPosition = col->position;
+
+
+				//glm::mat4 transform = glm::mat4(1.0f);
+				//transform = glm::translate(transform, c->entityPosition);
+				//transform = glm::rotate(transform, glm::radians(c->entityRotation.x), glm::vec3(1, 0, 0));
+				//transform = glm::rotate(transform, glm::radians(c->entityRotation.y), glm::vec3(0, 1, 0));
+				//transform = glm::rotate(transform, glm::radians(c->entityRotation.z), glm::vec3(0, 0, 1));
+
+				//c->transform = col->transform;
+				c->SetTransform(col->transform);
 			}
 		}
 	}
@@ -244,9 +293,13 @@ namespace Physics {
 		{
 			if (!c->isKinematic && c->hasGravity)
 			{
-				//std::cerr << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl;
+				//std::cerr << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl; 
+				std::cout << "Before Gravity Velocity: " << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl;
+
 
 				c->velocity += glm::vec3(0, GravityMultiplier, 0) * deltaTime;
+
+				std::cout << "After Gravity Velocity: " << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl;
 
 				//std::cerr << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl;
 			}

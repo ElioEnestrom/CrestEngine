@@ -165,6 +165,7 @@
     <ClCompile Include="Intersect.cpp" />
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Math.cpp" />
     <ClCompile Include="MemoryChecker.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshManager.cpp" />
@@ -189,6 +190,7 @@
     <ClInclude Include="Interface.h" />
     <ClInclude Include="Intersect.h" />
     <ClInclude Include="Level.h" />
+    <ClInclude Include="Math.h" />
     <ClInclude Include="MemoryChecker.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshManager.h" />

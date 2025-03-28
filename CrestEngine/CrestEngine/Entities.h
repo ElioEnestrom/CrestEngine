@@ -20,10 +20,10 @@ public:
 	//glm::mat4 transform;
 	glm::vec3 position;
 	glm::vec3 rotation;
-	glm::mat4 transform;
 
 	glm::vec3 entityPosition;
 	glm::vec3 entityRotation;
+	glm::vec3 entityScale;
 	float textureMixer = 0.0f;
 	int textureIndex1 = 0;
 	int textureIndex2 = 0;
@@ -38,6 +38,9 @@ public:
 	void AddProperty(EntityProperty* property); // Add method to add properties
 	void CreateSphereCollider(const float& aRadius);
 	void CreateBoxCollider(const glm::vec3& someExtents);
+	void SetTransform(const glm::mat4& aTransform); 
+	glm::mat4 CreateTransformMatrix(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale);
+	glm::mat4 GetTransform();
 
 	std::vector<EntityProperty*> properties;
 
@@ -49,7 +52,7 @@ public:
 
 
 	bool WriteTo(std::iostream& file) const override;
-	bool ReadFrom(std::iostream& file) override;
+	bool ReadFrom(std::iostream& file) override; 
 
 	Physics::Collider* myCollider = nullptr;
 private:

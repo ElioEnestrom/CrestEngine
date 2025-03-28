@@ -88,6 +88,12 @@
     <Filter Include="Source Files\Physics">
       <UniqueIdentifier>{aa47f221-d608-4acd-b49e-4e71271c12e8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Math">
+      <UniqueIdentifier>{0ac11c22-bf68-4dc6-bbdc-cabc9c3e632f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Math">
+      <UniqueIdentifier>{ab42fde5-2e57-455b-aeae-e202d5f27048}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -180,6 +186,9 @@
     <ClCompile Include="Intersect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Math.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Entities.h">
@@ -253,6 +262,9 @@
     </ClInclude>
     <ClInclude Include="Intersect.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Math.h">
+      <Filter>Header Files\Math</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

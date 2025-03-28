@@ -4,6 +4,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>
 #include <iostream>
+#include <sstream>
 
 namespace Physics {
 	
@@ -14,15 +15,22 @@ namespace Physics {
 
 		glm::vec3 pos1 = glm::vec3(aSphere1.transform[3]);
 		glm::vec3 pos2 = glm::vec3(aSphere2.transform[3]);
+		//std::cout << "pos1: " << pos1.x << ", " << pos1.y << ", " << pos1.z << std::endl;
+		//std::cout << "pos2: " << pos2.x << ", " << pos2.y << ", " << pos2.z << std::endl;
+
 		float dist2 = glm::distance2(pos1, pos2);
 		float radiusSum = aSphere1.radius + aSphere2.radius;
+
+		//std::cout << "dist2: " << dist2 << std::endl;
+		//std::cout << "radiusSum: " << radiusSum << std::endl << std::endl;
+
 
 		if (dist2 < radiusSum * radiusSum)
 		{
 			float dist = glm::sqrt(dist2);
 			glm::vec3 normal = (dist > 0.0f) ? (pos2 - pos1) / dist : glm::vec3(1, 0, 0);
 			glm::vec3 contactPoint = pos1 + normal * aSphere1.radius;
-
+			
 			returnCollision = { const_cast<SphereCollider*>(&aSphere1), const_cast<SphereCollider*>(&aSphere2), contactPoint, normal };
 		}
 
@@ -133,7 +141,6 @@ namespace Physics {
 	}	
 	Collision PlaneBoxIntersect(const PlaneCollider& aPlane, const BoxCollider& aBox)
 	{
-		//std::cerr << "PlaneBoxIntersect" << std::endl;
 		glm::vec3 boxCenter = glm::vec3(aBox.transform[3]);
 		glm::mat3 boxRotation = glm::mat3(aBox.transform);  // Extract the rotation matrix of the box
 
@@ -153,46 +160,55 @@ namespace Physics {
 
 		std::cout << "halfExtents: " << halfExtents.z << std::endl;
 		std::cout << "distance: " << distance << std::endl;
-
+		std::cout << "boxToPlaneDistance: " << boxToPlane.x << std::endl;
+		std::cout << "boxToPlaneDistance: " << boxToPlane.y << std::endl;
+		std::cout << "boxToPlaneDistance: " << boxToPlane.z << std::endl;
+		std::cout << "boxCenter: " << boxCenter.x << std::endl;
+		std::cout << "boxCenter: " << boxCenter.y << std::endl;
+		std::cout << "d: " << d << std::endl;
+		std::cout << "boxCenter: " << boxCenter.z << std::endl << std::endl;
 
 		// Step 4: Penetration depth check
 		float penetrationDepth = halfExtents.z - glm::abs(distance);
 
-		std::cout << "penetrationDepth" << penetrationDepth << std::endl << std::endl;
+		std::cout << "penetrationDepth: " << penetrationDepth << std::endl << std::endl;
 
 		if (penetrationDepth > 0)  // Box is penetrating the plane
 		{
-			// Step 5: Get the box's local corners
-			glm::vec3 localCorners[8] = {
-				glm::vec3(-halfExtents.x, -halfExtents.y, -halfExtents.z),
-				glm::vec3(halfExtents.x, -halfExtents.y, -halfExtents.z),
-				glm::vec3(-halfExtents.x,  halfExtents.y, -halfExtents.z),
-				glm::vec3(halfExtents.x,  halfExtents.y, -halfExtents.z),
-				glm::vec3(-halfExtents.x, -halfExtents.y,  halfExtents.z),
-				glm::vec3(halfExtents.x, -halfExtents.y,  halfExtents.z),
-				glm::vec3(-halfExtents.x,  halfExtents.y,  halfExtents.z),
-				glm::vec3(halfExtents.x,  halfExtents.y,  halfExtents.z)
-			};
+		    // Step 5: Get the box's local corners
+		    glm::vec3 localCorners[8] = {
+		        glm::vec3(-halfExtents.x, -halfExtents.y, -halfExtents.z),
+		        glm::vec3(halfExtents.x, -halfExtents.y, -halfExtents.z),
+		        glm::vec3(-halfExtents.x,  halfExtents.y, -halfExtents.z),
+		        glm::vec3(halfExtents.x,  halfExtents.y, -halfExtents.z),
+		        glm::vec3(-halfExtents.x, -halfExtents.y,  halfExtents.z),
+		        glm::vec3(halfExtents.x, -halfExtents.y,  halfExtents.z),
+		        glm::vec3(-halfExtents.x,  halfExtents.y,  halfExtents.z),
+		        glm::vec3(halfExtents.x,  halfExtents.y,  halfExtents.z)
+		    };
 
-			// Step 6: Rotate the corners back into world space
-			for (int i = 0; i < 8; ++i) {
-				localCorners[i] = boxRotation * localCorners[i];
-			}
+		    // Step 6: Rotate the corners back into world space
+		    for (int i = 0; i < 8; ++i) {
+		        localCorners[i] = boxRotation * localCorners[i];
+		        //std::cout << "localCorner[" << i << "]: " << localCorners[i].x << ", " << localCorners[i].y << ", " << localCorners[i].z << std::endl;
+		    }
 
-			// Step 7: Find the closest point to the plane and check for intersection
-			for (int i = 0; i < 8; ++i) {
-				float pointDistance = glm::dot(normal, localCorners[i]);
-				if (pointDistance < halfExtents.z)  // If any corner is closer than the box's extents, it's a collision
-				{
-					glm::vec3 correction = normal * (halfExtents.z - pointDistance);
-					glm::vec3 contactPoint = localCorners[i] + correction;
+		    // Step 7: Find the closest point to the plane and check for intersection
+		    for (int i = 0; i < 8; ++i) {
+		        float pointDistance = glm::dot(normal, localCorners[i]);
+		        //std::cout << "pointDistance[" << i << "]: " << pointDistance << std::endl;
 
-					// Apply contact point correction
-					boxCenter += correction;  // Correct position to prevent clipping
+		        if (pointDistance < halfExtents.z)  // If any corner is closer than the box's extents, it's a collision
+		        {
+		            glm::vec3 correction = normal * (halfExtents.z - pointDistance);
+		            glm::vec3 contactPoint = localCorners[i] + correction;
 
-					return { const_cast<PlaneCollider*>(&aPlane), const_cast<BoxCollider*>(&aBox), contactPoint, normal };
-				}
-			}
+		            // Apply contact point correction
+		            boxCenter += correction;  // Correct position to prevent clipping
+
+		            return { const_cast<PlaneCollider*>(&aPlane), const_cast<BoxCollider*>(&aBox), contactPoint, normal };
+		        }
+		    }
 		}
 
 		return { nullptr, nullptr, glm::vec3(0), glm::vec3(0) };
