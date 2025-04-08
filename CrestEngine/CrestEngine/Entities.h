@@ -13,6 +13,13 @@
 #include <list>
 #include <glm/glm.hpp>
 
+enum ObjectShaderType
+{
+	OBJECT_SHADER,
+	LIGHT_SOURCE_SHADER,
+	LIGHTING_SHADER
+};
+
 struct Entity : public IWritable {
 public:
 	std::string name;
@@ -20,6 +27,7 @@ public:
 	//glm::mat4 transform;
 	glm::vec3 position;
 	glm::vec3 rotation;
+	glm::vec3 scale;
 
 	glm::vec3 entityPosition;
 	glm::vec3 entityRotation;
@@ -27,6 +35,7 @@ public:
 	float textureMixer = 0.0f;
 	int textureIndex1 = 0;
 	int textureIndex2 = 0;
+	int objectShaderType;
 
 	GeneralProperty generalProperty;
 	ModelProperty modelProperty;

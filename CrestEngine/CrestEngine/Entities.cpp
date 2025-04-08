@@ -17,6 +17,7 @@ Entity* EntityManager::CreateEntity()
     //newEntity->transform = glm::mat4(1.0f);
     newEntity->position = glm::vec3(0, 0.0f, -10.0f);
     newEntity->rotation = glm::vec3(0, 0, 0);
+	newEntity->scale = glm::vec3(1.0f, 1.0f, 1.0f);
     
     newEntity->entityPosition = glm::vec3(0.0f, 0.0f, -20.0f);
     newEntity->entityRotation = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -24,6 +25,7 @@ Entity* EntityManager::CreateEntity()
 	newEntity->textureMixer = 0.5f;
 	newEntity->textureIndex1 = 0;
 	newEntity->textureIndex2 = 1; 
+	newEntity->objectShaderType = OBJECT_SHADER;
 
     //newEntity->generalProperty.
 
@@ -59,7 +61,12 @@ void Entity::SetTransform(const glm::mat4& aTransform)
     Math::DecomposeTransform(aTransform, translation, rotation, scale);
 
 	entityPosition = translation;
-    entityRotation = rotation;
+    if (entityRotation.x != rotation.x || entityRotation.y != rotation.y || entityRotation.z != rotation.z) 
+    {
+		//std::cout << "Entity rotation: " << entityRotation.x << " " << entityRotation.y << " " << entityRotation.z << std::endl;
+		//std::cout << "Rotation: " << rotation.x << " " << rotation.y << " " << rotation.z << std::endl << std::endl;
+    }
+    //entityRotation = rotation;
     //Scale = scale;
 }
 glm::mat4 Entity::GetTransform()

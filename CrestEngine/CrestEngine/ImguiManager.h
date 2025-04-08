@@ -23,7 +23,8 @@ public:
 		std::vector<std::string>& textureNames,
 		int& texture1Index,
 		int& texture2Index,
-		float& textureMixer);
+		float& textureMixer,
+		bool& normalView);
 
 	//ImguiManager();
 	//~ImguiManager();

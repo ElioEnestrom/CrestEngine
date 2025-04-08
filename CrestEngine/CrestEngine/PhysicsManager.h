@@ -29,11 +29,11 @@ namespace Physics {
 		std::vector<Collision> CheckIntersections(std::vector<Collider*> colliders);
 	
 	
-		bool RayCast(Ray& aRay, RayHit& aHit);
-		bool CheckRayIntersect(const Ray& aRay, Collider* aCollider);
+		bool RayCast(Ray& aRay);
+		bool CheckRayIntersect(Ray& aRay, Collider* aCollider);
 	
 	
 		std::vector<Collider*> colliders;
-		PlaneCollider* main_plane;
+		//PlaneCollider* main_plane;
 	};
 }

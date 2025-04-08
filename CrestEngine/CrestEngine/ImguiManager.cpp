@@ -24,7 +24,8 @@ void ImguiManager::UpdateImGui(
 	std::vector<std::string>& textureNames, 
 	int& texture1Index, 
 	int& texture2Index, 
-	float& textureMixer)
+	float& textureMixer,
+	bool& normalView)
 {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
@@ -56,6 +57,21 @@ void ImguiManager::UpdateImGui(
 		{
 			std::cout << "No entity selected to delete." << std::endl;
 		}
+	}
+	ImGui::SameLine();
+	ImGui::Checkbox("View Normals", &normalView);
+	if (ImGui::Button("Spawn Light Source"))
+	{
+		Entity* newEntity = entityManager.CreateEntity();
+		newEntity->objectShaderType = LIGHT_SOURCE_SHADER;
+		currentlySelected = newEntity;
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Spawn Light"))
+	{
+		Entity* newEntity = entityManager.CreateEntity();
+		newEntity->objectShaderType = LIGHTING_SHADER;
+		currentlySelected = newEntity;
 	}
 	if (ImGui::Button("LoadLevel"))
 	{
@@ -92,13 +108,16 @@ void ImguiManager::UpdateImGui(
 
 		float entityPosition[3] = { currentlySelected->entityPosition[0], currentlySelected->entityPosition[1], currentlySelected->entityPosition[2] };
 		float entityRotation[3] = { currentlySelected->entityRotation[0], currentlySelected->entityRotation[1], currentlySelected->entityRotation[2] };
+		float entityScale[3] = { currentlySelected->entityScale[0], currentlySelected->entityScale[1], currentlySelected->entityScale[2] };
 
 		ImGui::InputText("Name", &currentlySelected->name[0], currentlySelected->name.size() + 1);
 		ImGui::DragFloat3("Position", entityPosition, 0.01f, -FLT_MAX, FLT_MAX);
-		ImGui::DragFloat3("Rotation", entityRotation, 0.01f, -FLT_MAX, FLT_MAX);
+		ImGui::DragFloat3("Rotation", entityRotation, 0.3f, -FLT_MAX, FLT_MAX);
+		ImGui::DragFloat3("Scale", entityScale, 0.01f, -FLT_MAX, FLT_MAX);
 		
 		currentlySelected->entityPosition = glm::vec3(entityPosition[0], entityPosition[1], entityPosition[2]);
 		currentlySelected->entityRotation = glm::vec3(entityRotation[0], entityRotation[1], entityRotation[2]);
+		currentlySelected->entityScale = glm::vec3(entityScale[0], entityScale[1], entityScale[2]);
 
 
 		const char* comboPreviewValue = modelNames[currentModelIndex].c_str(); // Preview value

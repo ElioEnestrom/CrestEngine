@@ -68,7 +68,6 @@ bool Math::DecomposeTransform(const glm::mat4& transform, glm::vec3& translation
 		rotation.z = 0;
 	}
 
-
 	return true;
 
 }

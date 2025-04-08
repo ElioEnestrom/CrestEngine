@@ -9,8 +9,8 @@
 namespace Physics {
 	PhysicsManager::PhysicsManager()
 	{
-		main_plane = new PlaneCollider(glm::vec3(0, 1, 0), 1);
-		main_plane->position = glm::vec3(0, -7, 0);
+		//main_plane = new PlaneCollider(glm::vec3(0, 1, 0), 1);
+		//main_plane->position = glm::vec3(0, -7, 0);
 	}
 	void PhysicsManager::SimulatePhysics(const float& deltaTime)
 	{
@@ -58,24 +58,26 @@ namespace Physics {
                     c->angularVelocity = glm::normalize(c->angularVelocity) * maxAngularVelocity;
                 }
 
-                if (glm::length(c->angularVelocity) > 0.0001f)
-                {
-                    glm::vec3 angularVelocityNorm = glm::normalize(c->angularVelocity);
-                    glm::quat angularRotation = glm::angleAxis(glm::length(c->angularVelocity) * deltaTime, angularVelocityNorm);
-                    glm::mat3 rotationDelta = glm::mat3_cast(angularRotation);
-                    c->transform = glm::mat4(rotationDelta) * c->transform;
-                }
+                //if (glm::length(c->angularVelocity) > 0.0001f)
+                //{
+                //    glm::vec3 angularVelocityNorm = glm::normalize(c->angularVelocity);
+                //    glm::quat angularRotation = glm::angleAxis(glm::length(c->angularVelocity) * deltaTime, angularVelocityNorm);
+                //    glm::mat3 rotationDelta = glm::mat3_cast(angularRotation);
+                //    c->transform = glm::mat4(rotationDelta) * c->transform;
+                //}
 
                 if (c->mass > 0)
                 {
-					std::cout << "Velocity: " << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl;
+					//std::cout << "Velocity: " << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl;
                     c->velocity *= glm::pow(1.0f - LinearDrag, deltaTime);
-					std::cout << "Velocity: " << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl;
+					//std::cout << "Velocity: " << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl;
                 }
 
                 if (c->mass > 0)
                 {
+					//std::cout << "Angular Velocity: " << c->angularVelocity.x << " " << c->angularVelocity.y << " " << c->angularVelocity.z << std::endl;
                     c->angularVelocity *= glm::exp(-AngularDrag * deltaTime);
+					//std::cout << "Angular Velocity: " << c->angularVelocity.x << " " << c->angularVelocity.y << " " << c->angularVelocity.z << std::endl;
                 }
 
 
@@ -216,14 +218,14 @@ namespace Physics {
 
 			glm::vec3 impulseVector = impulse * normal;
 			
-			std::cout << "Before Impulse Velocity Collider1: " << c.collider1->velocity.x << " " << c.collider1->velocity.y << " " << c.collider1->velocity.z << std::endl;
-			std::cout << "Before Impulse Velocity Collider2: " << c.collider2->velocity.x << " " << c.collider2->velocity.y << " " << c.collider2->velocity.z << std::endl;
+			//std::cout << "Before Impulse Velocity Collider1: " << c.collider1->velocity.x << " " << c.collider1->velocity.y << " " << c.collider1->velocity.z << std::endl;
+			//std::cout << "Before Impulse Velocity Collider2: " << c.collider2->velocity.x << " " << c.collider2->velocity.y << " " << c.collider2->velocity.z << std::endl;
 
 			c.collider1->velocity += impulseVector;
 			c.collider2->velocity -= impulseVector;
 
-			std::cout << "After Impulse Velocity Collider1: " << c.collider1->velocity.x << " " << c.collider1->velocity.y << " " << c.collider1->velocity.z << std::endl;
-			std::cout << "After Impulse Velocity Collider2: " << c.collider2->velocity.x << " " << c.collider2->velocity.y << " " << c.collider2->velocity.z << std::endl;
+			//std::cout << "After Impulse Velocity Collider1: " << c.collider1->velocity.x << " " << c.collider1->velocity.y << " " << c.collider1->velocity.z << std::endl;
+			//std::cout << "After Impulse Velocity Collider2: " << c.collider2->velocity.x << " " << c.collider2->velocity.y << " " << c.collider2->velocity.z << std::endl;
 
 			glm::vec3 r1 = c.point - c.collider1->position;
 			glm::vec3 r2 = c.point - c.collider2->position;
@@ -241,7 +243,7 @@ namespace Physics {
 	{
 		std::vector<Collider*> cols;
 
-		cols.push_back(main_plane);
+		//cols.push_back(main_plane);
 
 		for (Entity* c : EntityManager::Get().entities)
 		{
@@ -294,12 +296,12 @@ namespace Physics {
 			if (!c->isKinematic && c->hasGravity)
 			{
 				//std::cerr << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl; 
-				std::cout << "Before Gravity Velocity: " << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl;
+				//std::cout << "Before Gravity Velocity: " << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl;
 
 
 				c->velocity += glm::vec3(0, GravityMultiplier, 0) * deltaTime;
 
-				std::cout << "After Gravity Velocity: " << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl;
+				//std::cout << "After Gravity Velocity: " << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl;
 
 				//std::cerr << c->velocity.x << " " << c->velocity.y << " " << c->velocity.z << std::endl;
 			}
@@ -316,6 +318,7 @@ namespace Physics {
 		{
 			for (int j = i + 1; j < count; j++)
 			{
+
 				Collision c = CheckIntersect(colliders[i], colliders[j]);
 				if (c.collider1 != nullptr && c.collider2 != nullptr)
 				{
@@ -326,21 +329,18 @@ namespace Physics {
 		return collisions;
 	}
 	
-	bool PhysicsManager::RayCast(Ray& aRay, RayHit& aHit)
+	bool PhysicsManager::RayCast(Ray& aRay)
 	{
 		for (Collider* c : colliders) {
 			if (CheckRayIntersect(aRay, c))
 			{
-				aHit.collider = c;
-				aHit.point = glm::vec3(0, 0, 0);
-				aHit.distance = 0.0f;
 				return true;
 			}
 		}
 		return false;
 	}
 	
-	bool PhysicsManager::CheckRayIntersect(const Ray& aRay, Collider* aCollider)
+	bool PhysicsManager::CheckRayIntersect(Ray& aRay, Collider* aCollider)
 	{
 		if (aCollider->isOf<SphereCollider>())
 		{

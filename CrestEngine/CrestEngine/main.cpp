@@ -80,8 +80,10 @@ int main()
 
 #pragma endregion 
 
-	Shader ourShader("firstshader.vs.txt", "firstshader.fs.txt");
-
+	Shader ourShader("Shaders/firstshader.vs.txt", "Shaders/firstshader.fs.txt");
+	Shader lightingShader("Shaders/lightingshader.vs.txt", "Shaders/lightingshader.fs.txt");
+	Shader lightSourceShader("Shaders/lightsourceshader.vs.txt", "Shaders/lightsourceshader.fs.txt");
+	Shader normalViewShader("Shaders/normalviewshader.vs.txt", "Shaders/normalviewshader.fs.txt");
 	
 	std::vector<float> OBJvertices;
 	std::vector<float> OBJnormals;
@@ -111,29 +113,46 @@ int main()
 	{
 		meshMap[mesh->path] = mesh;
 	}
-
+	
 	for (auto& currentMesh : MeshManager::Get().meshList)
 	{
-		unsigned int VAO;
-		unsigned int VBO;
-		glGenVertexArrays(1, &VAO);
-		glGenBuffers(1, &VBO);
-		glBindVertexArray(VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, currentMesh->vertices.size() * sizeof(Vertex), currentMesh->vertices.data(), GL_STATIC_DRAW);
+	    unsigned int VAO;
+	    unsigned int VBO;
+	    glGenVertexArrays(1, &VAO);
+	    glGenBuffers(1, &VBO);
+	    glBindVertexArray(VAO);
+	    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	    glBufferData(GL_ARRAY_BUFFER, currentMesh->vertices.size() * sizeof(Vertex), currentMesh->vertices.data(), GL_STATIC_DRAW);
+	
+	    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+	    glEnableVertexAttribArray(0);
+	    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
+	    glEnableVertexAttribArray(1);
+	    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(5 * sizeof(float)));
+	    glEnableVertexAttribArray(2);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(5 * sizeof(float)));
-		glEnableVertexAttribArray(2);
-
-		VAOs[currentMesh->id] = VAO;
-		VBOs[currentMesh->id] = VBO; 
-		//meshMap[(currentMesh)->path]
+		//void* data = glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
+		//if (data) {
+		//	Vertex* vertices = static_cast<Vertex*>(data);
+		//	for (size_t i = 0; i < currentMesh->vertices.size(); ++i) {
+		//		std::cout << "Normal from VBO: ("
+		//			<< vertices[i].normal.x << ", "
+		//			<< vertices[i].normal.y << ", "
+		//			<< vertices[i].normal.z << ")" << std::endl;
+		//	}
+		//	glUnmapBuffer(GL_ARRAY_BUFFER);
+		//}
+	    VAOs[currentMesh->id] = VAO;
+	    VBOs[currentMesh->id] = VBO; 
 	}
-
+	unsigned int lightVAO;
+	glGenVertexArrays(1, &lightVAO);
+	glBindVertexArray(lightVAO);
+	// we only need to bind to the VBO, the container's VBO's data already contains the data.
+	glBindBuffer(GL_ARRAY_BUFFER, VBOs[3]);
+	// set the vertex attribute 
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
 
 	unsigned int texture1 = Texture::loadTexture("face.png");
 
@@ -144,6 +163,8 @@ int main()
 	unsigned int texture4 = Texture::loadTexture("Viking_House.png");
 
 	ourShader.use();
+
+
 	ourShader.setInt("texture2", 1); // or with shader class
 	//ourShader.setInt("texture1", 0); // or with shader class
 	glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0); // set it manually
@@ -185,6 +206,20 @@ int main()
 	float textureMixer = 0.35f;
 	Physics::PhysicsManager physicsManager;
 
+	bool viewNormals = false;
+
+	// Define the origin and direction of the ray
+	glm::vec3 rayOrigin(0.0f, 0.0f, -20.0f);
+	glm::vec3 rayDirection(0.0f, 1.0f, 0.0f);
+
+	// Create a Ray object
+	Ray ray(rayOrigin, rayDirection);
+
+	// Create a RayHit object to store the result
+	RayHit hit;
+
+	Shader currentShader = ourShader;
+
 	glfwSetKeyCallback(window, key_callback);
 	//std::thread messageThread([] {
 	//	while (true)
@@ -217,7 +252,16 @@ int main()
 	        textureNames, 
 	        texture1Index, 
 	        texture2Index, 
-	        textureMixer);
+	        textureMixer,
+			viewNormals); 
+		
+		bool hitDetected = physicsManager.RayCast(ray);
+
+		// Check if the ray hit any collider
+		if (hitDetected) {
+			//std::cout << "Hit collider name: " << ray.hit.collider->GetTypeName() << std::endl;
+			//std::cout << "Hit distance: " << ray.hit.distance << std::endl;
+		}
 	
 	    if (drawCubes)
 	    {
@@ -234,34 +278,70 @@ int main()
 	        {
 	            if (entity != nullptr)
 	            {
+					glm::mat4 model;
+                    switch (entity->objectShaderType) {
+                        case LIGHT_SOURCE_SHADER:
+                            currentShader = lightSourceShader;
+                            currentShader.use();
+                            currentShader.setMat4("view", view);
+                            currentShader.setMat4("projection", projection);
+                            break;
+                        case OBJECT_SHADER:
+                            currentShader = ourShader;
+                            ourShader.use();
+                            ourShader.setFloat("textureMixer", entity->textureMixer);
+
+                            glActiveTexture(GL_TEXTURE0);
+                            glBindTexture(GL_TEXTURE_2D, textureIDs[entity->textureIndex1]);
+                            glActiveTexture(GL_TEXTURE1);
+                            glBindTexture(GL_TEXTURE_2D, textureIDs[entity->textureIndex2]);
+                            break;
+                        case LIGHTING_SHADER:
+                            currentShader = lightingShader;
+                            lightingShader.use();
+                            lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+                            lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+							lightingShader.setVec3("lightPos", glm::vec3(1.0, 1.0, 1.0));
+                            lightingShader.setMat4("view", view);
+                            lightingShader.setMat4("projection", projection);
+                            break;
+                        default:
+                            // Handle unexpected shader type if necessary
+                            break;
+                    }
+					if (viewNormals) {
+						currentShader = normalViewShader;
+						normalViewShader.use();
+						normalViewShader.setMat4("view", view);
+						normalViewShader.setMat4("projection", projection);
+					}
+
 	                currentObject = meshMap[entity->model]->vertices;
 	                currentBuffer = VAOs[meshMap[entity->model]->id];
 	
-					ourShader.setFloat("textureMixer", entity->textureMixer);
 
 	                glBindVertexArray(currentBuffer);
 	
 	                entity->position = glm::vec3(entity->entityPosition[0], entity->entityPosition[1], entity->entityPosition[2]);
-	                glm::mat4 model = glm::translate(glm::mat4(1.0f), entity->position);
 	                entity->rotation = glm::vec3(entity->entityRotation[0], entity->entityRotation[1], entity->entityRotation[2]);
-	                glm::vec3 rotationAxis = entity->rotation;
-	                if (glm::length(rotationAxis) > 0.0f) {
-	                    model = glm::rotate(model, glm::radians(rotationAxis.x), glm::vec3(1.0f, 0, 0));
-	                    model = glm::rotate(model, glm::radians(rotationAxis.y), glm::vec3(0, 1.0f, 0));
-	                    model = glm::rotate(model, glm::radians(rotationAxis.z), glm::vec3(0, 0, 1.f));
-	                }
-	                ourShader.setMat4("model", model);
+					entity->scale = glm::vec3(entity->entityScale[0], entity->entityScale[1], entity->entityScale[2]);
+					
+					model = entity->CreateTransformMatrix(entity->position, entity->rotation, entity->scale);
+					//glm::mat4 model = glm::translate(glm::mat4(1.0f), entity->position);
+	                //glm::vec3 rotationAxis = entity->rotation;
+	                //if (glm::length(rotationAxis) > 0.0f) {
+	                //    model = glm::rotate(model, glm::radians(rotationAxis.x), glm::vec3(1.0f, 0, 0));
+	                //    model = glm::rotate(model, glm::radians(rotationAxis.y), glm::vec3(0, 1.0f, 0));
+	                //    model = glm::rotate(model, glm::radians(rotationAxis.z), glm::vec3(0, 0, 1.f));
+	                //}
+	                currentShader.setMat4("model", model);
 	
 	                // Bind textures for the current entity
-	                glActiveTexture(GL_TEXTURE0);
-	                glBindTexture(GL_TEXTURE_2D, textureIDs[entity->textureIndex1]);
-	                glActiveTexture(GL_TEXTURE1);
-	                glBindTexture(GL_TEXTURE_2D, textureIDs[entity->textureIndex2]);
 	
 	                glDrawArrays(GL_TRIANGLES, 0, (GLsizei)currentObject.size());
 	            }
 	        }
-	    }
+		}
 	
 	    ImGui::Render();
 	    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

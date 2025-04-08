@@ -13,7 +13,6 @@ namespace Physics {
 	Collision PlaneSphereIntersect(const PlaneCollider& aPlane, const SphereCollider& aSphere);
 
 
-	bool RaySphereIntersect(const Ray& aRay, SphereCollider& aSphere);
-	bool RayBoxIntersect(const Ray& aRay, BoxCollider& aBox);
-	bool RayOBBIntersect(const Ray& aRay, BoxCollider& aBox);
+	bool RaySphereIntersect(Ray& aRay, SphereCollider& aSphere);
+	bool RayBoxIntersect(Ray& aRay, BoxCollider& aBox);
 }

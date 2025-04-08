@@ -165,9 +165,15 @@ void* MeshManager::loadOBJ(const std::string& filename)
             texCoords[2 * textureIndex[i]],
             texCoords[2 * textureIndex[i] + 1]
         );
+		vertex.normal = glm::vec3(
+			normals[3 * normalIndex[i]],
+			normals[3 * normalIndex[i] + 1],
+			normals[3 * normalIndex[i] + 2]
+		);
+		std::cout << vertex.normal.x << " " << vertex.normal.y << " " << vertex.normal.z << std::endl;
         newMesh->vertices.push_back(vertex);
     }
-
+    std::cout << std::endl;
     for (size_t i = 0; i < positionIndex.size(); ++i) {
         vertexIndex.push_back(static_cast<unsigned int>(positionIndex[i]));
         vertexIndex.push_back(static_cast<unsigned int>(textureIndex[i]));

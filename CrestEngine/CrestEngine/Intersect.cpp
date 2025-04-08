@@ -39,7 +39,7 @@ namespace Physics {
 
 	Collision SphereBoxIntersect(SphereCollider& aSphere2, BoxCollider& aBox1)
 	{
-		std::cerr << "SphereBoxIntersect" << std::endl;
+		//std::cerr << "SphereBoxIntersect" << std::endl;
 		glm::vec3 sphereCenter = glm::vec3(aSphere2.transform[3]);
 		glm::vec3 localSphereCenter = glm::inverse(aBox1.transform) * glm::vec4(sphereCenter, 1.0f);
 		glm::vec3 closestPoint = glm::clamp(localSphereCenter, -aBox1.extents, aBox1.extents);
@@ -158,20 +158,20 @@ namespace Physics {
 		// Calculate the distance from the center of the box to the plane
 		float distance = glm::dot(normal, transformedCenter) - d;
 
-		std::cout << "halfExtents: " << halfExtents.z << std::endl;
-		std::cout << "distance: " << distance << std::endl;
-		std::cout << "boxToPlaneDistance: " << boxToPlane.x << std::endl;
-		std::cout << "boxToPlaneDistance: " << boxToPlane.y << std::endl;
-		std::cout << "boxToPlaneDistance: " << boxToPlane.z << std::endl;
-		std::cout << "boxCenter: " << boxCenter.x << std::endl;
-		std::cout << "boxCenter: " << boxCenter.y << std::endl;
-		std::cout << "d: " << d << std::endl;
-		std::cout << "boxCenter: " << boxCenter.z << std::endl << std::endl;
+		//std::cout << "halfExtents: " << halfExtents.z << std::endl;
+		//std::cout << "distance: " << distance << std::endl;
+		//std::cout << "boxToPlaneDistance: " << boxToPlane.x << std::endl;
+		//std::cout << "boxToPlaneDistance: " << boxToPlane.y << std::endl;
+		//std::cout << "boxToPlaneDistance: " << boxToPlane.z << std::endl;
+		//std::cout << "boxCenter: " << boxCenter.x << std::endl;
+		//std::cout << "boxCenter: " << boxCenter.y << std::endl;
+		//std::cout << "d: " << d << std::endl;
+		//std::cout << "boxCenter: " << boxCenter.z << std::endl << std::endl;
 
 		// Step 4: Penetration depth check
 		float penetrationDepth = halfExtents.z - glm::abs(distance);
 
-		std::cout << "penetrationDepth: " << penetrationDepth << std::endl << std::endl;
+		//std::cout << "penetrationDepth: " << penetrationDepth << std::endl << std::endl;
 
 		if (penetrationDepth > 0)  // Box is penetrating the plane
 		{
@@ -236,10 +236,10 @@ namespace Physics {
 
 	Collision CheckIntersect(Collider* aCollider1, Collider* aCollider2)
 	{
-		if (aCollider1->isOf<BoxCollider>() && aCollider2->isOf<SphereCollider>())		std::swap(aCollider1, aCollider2);
+		if (aCollider2->isOf<BoxCollider>() && aCollider1->isOf<SphereCollider>())		std::swap(aCollider1, aCollider2);
 		if (aCollider1->isOf<BoxCollider>() && aCollider2->isOf<PlaneCollider>())		std::swap(aCollider1, aCollider2);
 		if (aCollider1->isOf<SphereCollider>() && aCollider2->isOf<PlaneCollider>())	std::swap(aCollider1, aCollider2);
-
+		
 		if (aCollider1->isOf<SphereCollider>() && aCollider2->isOf<SphereCollider>())
 		{
 			SphereCollider* sphere1 = dynamic_cast<SphereCollider*>(aCollider1);
@@ -248,6 +248,7 @@ namespace Physics {
 		}
 		else if (aCollider1->isOf<BoxCollider>() && aCollider2->isOf<SphereCollider>())
 		{
+
 			BoxCollider* box1 = dynamic_cast<BoxCollider*>(aCollider1);
 			SphereCollider* sphere2 = dynamic_cast<SphereCollider*>(aCollider2);
 			return SphereBoxIntersect(*sphere2, *box1);
@@ -273,9 +274,11 @@ namespace Physics {
 		return { nullptr, nullptr, glm::vec3() };
 	}
 
-	bool RaySphereIntersect(const Ray& aRay, SphereCollider& aSphere)
+	bool RaySphereIntersect(Ray& aRay, SphereCollider& aSphere)
 	{
-		glm::vec3 diff = aSphere.center - aRay.origin;
+		glm::vec3 center = aSphere.transform[3];
+		glm::vec3 diff = center - aRay.origin;
+
 		float t0 = glm::dot(diff, aRay.direction);
 
 		float dSquared = glm::dot(diff, diff) - t0 * t0;
@@ -291,15 +294,23 @@ namespace Physics {
 		float Epsilon = 0.0001f;
 		float outIntersectionDistance = (t0 > t1) ? t0 - t1 : t0 + t1;
 
+		aRay.hit.distance = outIntersectionDistance;
+		aRay.hit.collider = &aSphere;
+
 		return outIntersectionDistance >= Epsilon;
 	}
 
-	bool RayBoxIntersect(const Ray& aRay, BoxCollider& aBox)
+	bool RayBoxIntersect(Ray& aRay, BoxCollider& aBox)
 	{
 		glm::vec3 min = glm::vec3(aBox.transform[3]) - aBox.extents;
 		glm::vec3 max = glm::vec3(aBox.transform[3]) + aBox.extents;
 
+		if (aRay.direction.x == 0.0f) aRay.direction.x = 0.0001f;
+		if (aRay.direction.y == 0.0f) aRay.direction.y = 0.0001f;
+		if (aRay.direction.z == 0.0f) aRay.direction.z = 0.0001f;
+
 		glm::vec3 invDir = 1.0f / aRay.direction;
+
 
 		float t1 = (min.x - aRay.origin.x) * invDir.x;
 		float t2 = (max.x - aRay.origin.x) * invDir.x;
@@ -308,24 +319,23 @@ namespace Physics {
 		float t5 = (min.z - aRay.origin.z) * invDir.z;
 		float t6 = (max.z - aRay.origin.z) * invDir.z;
 
+		//std::cout << "t1: " << t1 << std::endl;
+		//std::cout << "t2: " << t2 << std::endl;
+		//std::cout << "t3: " << t3 << std::endl;
+		//std::cout << "t4: " << t4 << std::endl;
+		//std::cout << "t5: " << t5 << std::endl;
+		//std::cout << "t6: " << t6 << std::endl << std::endl;
+
 		float tmin = glm::max(glm::max(glm::min(t1, t2), glm::min(t3, t4)), glm::min(t5, t6));
 		float tmax = glm::min(glm::min(glm::max(t1, t2), glm::max(t3, t4)), glm::max(t5, t6));
+		
+		if (tmax >= std::max(0.0f, tmin)) {
+			//aRay.hit.point = aRay.origin + aRay.direction * tmin;
+			aRay.hit.distance = tmin;
+			aRay.hit.collider = &aBox;
+			return true;
+		}
 
-		return tmax >= std::max(0.0f, tmin);
-	}
-
-	bool RayOBBIntersect(const Ray& aRay, BoxCollider& aBox)
-	{
-		glm::vec3 center = glm::vec3(aBox.transform[3]);
-		glm::mat3 rotation = glm::mat3(aBox.transform);
-
-		glm::vec3 localOrigin = glm::transpose(rotation) * (aRay.origin - center);
-		glm::vec3 localDirection = glm::transpose(rotation) * aRay.direction;
-
-		BoxCollider localBox = BoxCollider(glm::vec3(0.0f), aBox.extents);
-		localBox.extents = aBox.extents;
-
-		Ray localRay = Ray(localOrigin, localDirection);
-		return RayBoxIntersect(localRay, localBox);
+		return false;
 	}
 }
