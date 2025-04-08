@@ -64,6 +64,8 @@ void ImguiManager::UpdateImGui(
 	{
 		Entity* newEntity = entityManager.CreateEntity();
 		newEntity->objectShaderType = LIGHT_SOURCE_SHADER;
+		newEntity->position = glm::vec3(0, 3.0f, -20.0f);
+		newEntity->entityPosition = glm::vec3(0, 3.0f, -20.0f);
 		currentlySelected = newEntity;
 	}
 	ImGui::SameLine();
