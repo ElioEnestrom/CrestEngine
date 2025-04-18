@@ -190,6 +190,7 @@
     <ClInclude Include="Interface.h" />
     <ClInclude Include="Intersect.h" />
     <ClInclude Include="Level.h" />
+    <ClInclude Include="Materials.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="MemoryChecker.h" />
     <ClInclude Include="Mesh.h" />

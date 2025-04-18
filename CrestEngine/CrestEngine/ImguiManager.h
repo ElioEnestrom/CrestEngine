@@ -1,6 +1,7 @@
 #pragma once
 #include "Entities.h"
 #include "Mesh.h"
+#include "Shader.h"
 #include <vector>
 #include <unordered_map>
 #include <string>
@@ -24,7 +25,8 @@ public:
 		int& texture1Index,
 		int& texture2Index,
 		float& textureMixer,
-		bool& normalView);
+		bool& normalView,
+		Shader& ourShader);
 
 	//ImguiManager();
 	//~ImguiManager();

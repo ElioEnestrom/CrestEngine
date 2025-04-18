@@ -266,5 +266,8 @@
     <ClInclude Include="Math.h">
       <Filter>Header Files\Math</Filter>
     </ClInclude>
+    <ClInclude Include="Materials.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

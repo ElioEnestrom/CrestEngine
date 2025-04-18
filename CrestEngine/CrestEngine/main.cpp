@@ -18,6 +18,7 @@
 #include "OBJLoader.h"
 #include "ImguiManager.h"
 #include "PhysicsManager.h"
+#include "Materials.h"
 
 #include <thread>
 #include <mutex>
@@ -80,7 +81,10 @@ int main()
 
 #pragma endregion 
 
-	Shader ourShader("Shaders/firstshader.vs.txt", "Shaders/firstshader.fs.txt");
+	//Shader ourShader("Shaders/texturelightingshader.vs.txt", "Shaders/texturelightingshader.fs.txt");
+	//Shader ourShader("Shaders/texturedirectionallightingshader.vs.txt", "Shaders/texturedirectionallightingshader.fs.txt");
+	//Shader ourShader("Shaders/texturespotlightingshader.vs.txt", "Shaders/texturespotlightingshader.fs.txt");
+	Shader ourShader("Shaders/lightShader.vs.txt", "Shaders/lightShader.fs.txt");
 	Shader lightingShader("Shaders/lightingshader.vs.txt", "Shaders/lightingshader.fs.txt");
 	Shader lightSourceShader("Shaders/lightsourceshader.vs.txt", "Shaders/lightsourceshader.fs.txt");
 	Shader normalViewShader("Shaders/normalviewshader.vs.txt", "Shaders/normalviewshader.fs.txt");
@@ -162,12 +166,17 @@ int main()
 
 	unsigned int texture4 = Texture::loadTexture("Viking_House.png");
 
+	unsigned int texture5 = Texture::loadTexture("container.png");
+
+	unsigned int specularContainerTexture = Texture::loadTexture("container2_specular.png");
+
 	ourShader.use();
 
 
+	ourShader.setInt("material.specular", 2);
 	ourShader.setInt("texture2", 1); // or with shader class
 	//ourShader.setInt("texture1", 0); // or with shader class
-	glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0); // set it manually
+	glUniform1i(glGetUniformLocation(ourShader.ID, "<texture1>"), 0); // set it manually
 
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
@@ -198,8 +207,8 @@ int main()
 	currentBuffer = VAOs[meshMap["Flag.obj"]->id];
 	currentObject = meshMap["Flag.obj"]->vertices;
 	
-	std::vector<std::string> textureNames = { "face.png", "jail.png", "Pride.png", "Viking_House.png"};
-	std::vector<unsigned int> textureIDs = { texture1, texture2, texture3, texture4 };
+	std::vector<std::string> textureNames = { "face.png", "jail.png", "Pride.png", "Viking_House.png", "container.png"};
+	std::vector<unsigned int> textureIDs = { texture1, texture2, texture3, texture4, texture5 };
 	int texture1Index = 0;
 	int texture2Index = 1;
 	int currentTextureIndex = 0; 
@@ -220,6 +229,8 @@ int main()
 
 	Shader currentShader = ourShader;
 
+	entityManager.SpawnDirLight();
+
 	glfwSetKeyCallback(window, key_callback);
 	//std::thread messageThread([] {
 	//	while (true)
@@ -235,7 +246,7 @@ int main()
 		//std::cout << Time::DeltaTime() << std::endl;
 		physicsManager.SimulatePhysics(deltaTime);
 
-	    glClearColor(0.4, 0.3, 0.2, 1);
+	    glClearColor(0.1, 0.1, 0.1, 1);
 	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	    ImguiManager imguiManager;
@@ -253,7 +264,8 @@ int main()
 	        texture1Index, 
 	        texture2Index, 
 	        textureMixer,
-			viewNormals); 
+			viewNormals,
+			ourShader); 
 		
 		bool hitDetected = physicsManager.RayCast(ray);
 
@@ -288,22 +300,83 @@ int main()
                             break;
                         case OBJECT_SHADER:
                             currentShader = ourShader;
-                            ourShader.use();
-                            ourShader.setFloat("textureMixer", entity->textureMixer);
+							currentShader.use();
+							currentShader.setFloat("textureMixer", entity->textureMixer);
+							
+							currentShader.setVec3("dirLight.direction", -entityManager.directionalLight->entityPosition);
+							currentShader.setVec3("dirLight.ambient", entityManager.directionalLight->ambient);
+							currentShader.setVec3("dirLight.diffuse", entityManager.directionalLight->diffuse);
+							currentShader.setVec3("dirLight.specular", entityManager.directionalLight->specular);
+
+
+							// point light 1
+							for (int i = 0; i < entityManager.lightSources.size(); i++)
+							{
+								currentShader.setBool("pointLights[" + std::to_string(i) + "].hasSpawned", true);
+								currentShader.setVec3("pointLights[" + std::to_string(i) + "].position", entityManager.lightSources[i]->entityPosition);
+								currentShader.setVec3("pointLights[" + std::to_string(i) + "].ambient", entityManager.lightSources[i]->ambient);
+								currentShader.setVec3("pointLights[" + std::to_string(i) + "].diffuse", entityManager.lightSources[i]->diffuse);
+								currentShader.setVec3("pointLights[" + std::to_string(i) + "].specular", entityManager.lightSources[i]->specular);
+								currentShader.setFloat("pointLights[" + std::to_string(i) + "].constant", entityManager.lightSources[i]->constant);
+								currentShader.setFloat("pointLights[" + std::to_string(i) + "].linear", entityManager.lightSources[i]->linear);
+								currentShader.setFloat("pointLights[" + std::to_string(i) + "].quadratic", entityManager.lightSources[i]->quadratic);
+
+							}
+
+							currentShader.setVec3("spotLight.position", Camera::GetCameraPos());
+							currentShader.setVec3("spotLight.direction", Camera::GetCameraFront());
+							currentShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+							currentShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
+							currentShader.setVec3("spotLight.ambient", 0.05f, 0.05f, 0.05f);
+							currentShader.setVec3("spotLight.diffuse", 0.8f, 0.8f, 0.8f);
+							currentShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+							currentShader.setFloat("spotLight.constant", 1.0f);
+							currentShader.setFloat("spotLight.linear", 0.09f);
+							currentShader.setFloat("spotLight.quadratic", 0.032f);
+							
+							currentShader.setFloat("material.shininess", 32.0f);
+
+							currentShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+							currentShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+							currentShader.setVec3("lightPos", glm::vec3(0, 1.0f, 0.0f));
+							currentShader.setVec3("viewPos", Camera::GetCameraPos());
+
+
+							currentShader.setVec3("light.position", Camera::GetCameraPos());
+							currentShader.setVec3("light.direction", Camera::GetCameraFront());
+							currentShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+							currentShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
+
+							if (entity->viewContainerSpecularMap) 
+							{
+								currentShader.setBool("viewSpecular", true);
+							}
+							else
+							{
+								currentShader.setBool("viewSpecular", false);
+							}
 
                             glActiveTexture(GL_TEXTURE0);
                             glBindTexture(GL_TEXTURE_2D, textureIDs[entity->textureIndex1]);
                             glActiveTexture(GL_TEXTURE1);
                             glBindTexture(GL_TEXTURE_2D, textureIDs[entity->textureIndex2]);
+							glActiveTexture(GL_TEXTURE2);
+							glBindTexture(GL_TEXTURE_2D, specularContainerTexture);
                             break;
                         case LIGHTING_SHADER:
                             currentShader = lightingShader;
-                            lightingShader.use();
-                            lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-                            lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-							lightingShader.setVec3("lightPos", glm::vec3(0, 3.0f, -20.0f));
-                            lightingShader.setMat4("view", view);
-                            lightingShader.setMat4("projection", projection);
+                            currentShader.use(); 
+							currentShader.setMaterial("material", TURQUOISE);
+							currentShader.setVec3("light.ambient", 1.0f, 1.0f, 1.0f);
+							currentShader.setVec3("light.diffuse", 1.0f, 1.0f, 1.0f); // darken diffuse light a bit
+							currentShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+							currentShader.setFloat("material.shininess", 32.0f);
+                            currentShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+                            currentShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+							currentShader.setVec3("lightPos", glm::vec3(0, 3.0f, -20.0f));
+							currentShader.setVec3("viewPos", Camera::GetCameraPos());
+                            currentShader.setMat4("view", view);
+                            currentShader.setMat4("projection", projection);
                             break;
                         default:
                             // Handle unexpected shader type if necessary
@@ -311,9 +384,9 @@ int main()
                     }
 					if (viewNormals) {
 						currentShader = normalViewShader;
-						normalViewShader.use();
-						normalViewShader.setMat4("view", view);
-						normalViewShader.setMat4("projection", projection);
+						currentShader.use();
+						currentShader.setMat4("view", view);
+						currentShader.setMat4("projection", projection);
 					}
 
 	                currentObject = meshMap[entity->model]->vertices;

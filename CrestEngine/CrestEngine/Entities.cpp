@@ -13,7 +13,7 @@ Entity* EntityManager::CreateEntity()
     Entity* newEntity = new Entity();
     
     newEntity->name = "Entity " + std::to_string(amountOfEntities);
-    newEntity->model = "MySphere.obj";
+    newEntity->model = "Sphere.obj";
     //newEntity->transform = glm::mat4(1.0f);
     newEntity->position = glm::vec3(0, 0.0f, -10.0f);
     newEntity->rotation = glm::vec3(0, 0, 0);
@@ -24,7 +24,17 @@ Entity* EntityManager::CreateEntity()
     newEntity->entityScale= glm::vec3(1.0f, 1.0f, 1.0f);
 	newEntity->textureMixer = 0.5f;
 	newEntity->textureIndex1 = 0;
-	newEntity->textureIndex2 = 1; 
+	newEntity->textureIndex2 = 1;
+
+	newEntity->ambient = 0.05f;
+	newEntity->diffuse = 0.8f;
+	newEntity->specular = 1.0f;
+    newEntity->constant = 1.0f;
+    newEntity->linear = 0.9f;
+    newEntity->quadratic = 0.32f;
+
+	newEntity->isDirectionalLight = false;
+	newEntity->viewContainerSpecularMap = false;
 	newEntity->objectShaderType = OBJECT_SHADER;
 
     //newEntity->generalProperty.
@@ -76,6 +86,21 @@ glm::mat4 Entity::GetTransform()
     return glm::translate(glm::mat4(1.0f), entityPosition)
         * rotation
         * glm::scale(glm::mat4(1.0f), entityScale);
+}
+void EntityManager::SpawnDirLight()
+{
+	// Create a new entity for the directional light
+    Entity* lightEntity = EntityManager::Get().CreateEntity();
+	lightEntity->name = "Directional Light";
+	lightEntity->objectShaderType = LIGHT_SOURCE_SHADER;
+	lightEntity->position = glm::vec3(0, 3.0f, 0.0f);
+	lightEntity->entityPosition = glm::vec3(0, 3.0f, 0.0f);
+	lightEntity->ambient = 0.05f;
+	lightEntity->diffuse = 0.8f;
+	lightEntity->specular = 1.0f;
+	lightEntity->isDirectionalLight = true;
+	EntityManager::Get().directionalLight = lightEntity;
+	// Add the new entity to the list of entities
 }
 glm::mat4 Entity::CreateTransformMatrix(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale) {
     glm::mat4 transform = glm::mat4(1.0f); // Identity matrix
@@ -167,22 +192,22 @@ bool Entity::WriteTo(std::iostream& file) const
     //    return false;
     //}
 
-    for (EntityProperty* property : properties)
-    {
-        int propertyType = property->type;
-        std::cerr << "Writing property type: " << propertyType << std::endl;
-        file.write(reinterpret_cast<const char*>(&propertyType), sizeof(propertyType));
-        if (!file) {
-            std::cerr << "Failed to write property type." << std::endl;
-            return false;
-        }
-
-        std::cerr << "Writing property data..." << std::endl;
-        if (!property->WriteTo(file)) {
-            std::cerr << "Failed to write property data." << std::endl;
-            return false;
-        }
-    }
+    //for (EntityProperty* property : properties)
+    //{
+    //    int propertyType = property->type;
+    //    std::cerr << "Writing property type: " << propertyType << std::endl;
+    //    file.write(reinterpret_cast<const char*>(&propertyType), sizeof(propertyType));
+    //    if (!file) {
+    //        std::cerr << "Failed to write property type." << std::endl;
+    //        return false;
+    //    }
+    //
+    //    std::cerr << "Writing property data..." << std::endl;
+    //    if (!property->WriteTo(file)) {
+    //        std::cerr << "Failed to write property data." << std::endl;
+    //        return false;
+    //    }
+    //}
     return true;
 }
 
@@ -210,24 +235,24 @@ bool Entity::ReadFrom(std::iostream& file)
 
 	//numCustomProperties = properties.size();
 
-    for (int i = 0; i < properties.size(); i++)
-    {
-        int propertyType;
-        file.read(reinterpret_cast<char*>(&propertyType), sizeof(propertyType));
-        std::cerr << "Reading property type: " << propertyType << std::endl;
-
-        EntityProperty* newProperty = AllocateFor(static_cast<PropertyType>(propertyType));
-        if (newProperty)
-        {
-            newProperty->ReadFrom(file);
-			newProperty->UpdateEntity(this);
-            std::cerr << "Finished reading property of type: " << propertyType << std::endl;
-        }
-        else
-        {
-            std::cerr << "Failed to allocate property of type: " << propertyType << std::endl;
-        }
-    }
+    //for (int i = 0; i < properties.size(); i++)
+    //{
+    //    int propertyType;
+    //    file.read(reinterpret_cast<char*>(&propertyType), sizeof(propertyType));
+    //    std::cerr << "Reading property type: " << propertyType << std::endl;
+    //
+    //    EntityProperty* newProperty = AllocateFor(static_cast<PropertyType>(propertyType));
+    //    if (newProperty)
+    //    {
+    //        newProperty->ReadFrom(file);
+	//		newProperty->UpdateEntity(this);
+    //        std::cerr << "Finished reading property of type: " << propertyType << std::endl;
+    //    }
+    //    else
+    //    {
+    //        std::cerr << "Failed to allocate property of type: " << propertyType << std::endl;
+    //    }
+    //}
     return true;
 }
 

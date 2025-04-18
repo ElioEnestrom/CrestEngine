@@ -138,18 +138,21 @@ void* MeshManager::loadOBJ(const std::string& filename)
                 faceNormalIndices.push_back(normIdx - 1);
             }
             // Triangulate the face (assuming it's a convex polygon)
-            for (size_t i = 1; i < facePositionIndices.size() - 1; ++i) {
-                positionIndex.push_back(facePositionIndices[0]);
-                positionIndex.push_back(facePositionIndices[i]);
-                positionIndex.push_back(facePositionIndices[i + 1]);
-    
-                textureIndex.push_back(faceTextureIndices[0]);
-                textureIndex.push_back(faceTextureIndices[i]);
-                textureIndex.push_back(faceTextureIndices[i + 1]);
-    
-                normalIndex.push_back(faceNormalIndices[0]);
-                normalIndex.push_back(faceNormalIndices[i]);
-                normalIndex.push_back(faceNormalIndices[i + 1]);
+            if (!facePositionIndices.empty()) {
+
+                for (size_t i = 1; i < facePositionIndices.size() - 1; ++i) {
+                    positionIndex.push_back(facePositionIndices[0]);
+                    positionIndex.push_back(facePositionIndices[i]);
+                    positionIndex.push_back(facePositionIndices[i + 1]);
+        
+                    textureIndex.push_back(faceTextureIndices[0]);
+                    textureIndex.push_back(faceTextureIndices[i]);
+                    textureIndex.push_back(faceTextureIndices[i + 1]);
+        
+                    normalIndex.push_back(faceNormalIndices[0]);
+                    normalIndex.push_back(faceNormalIndices[i]);
+                    normalIndex.push_back(faceNormalIndices[i + 1]);
+                }
             }
         }
     }
@@ -170,7 +173,6 @@ void* MeshManager::loadOBJ(const std::string& filename)
 			normals[3 * normalIndex[i] + 1],
 			normals[3 * normalIndex[i] + 2]
 		);
-		std::cout << vertex.normal.x << " " << vertex.normal.y << " " << vertex.normal.z << std::endl;
         newMesh->vertices.push_back(vertex);
     }
     std::cout << std::endl;

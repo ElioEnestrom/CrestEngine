@@ -22,4 +22,5 @@ private:
 	glm::vec3 rotation;
 	float entityPosition[3] = { 0.0f, -5.0f, -20.0f };
 	float entityRotation[3] = { 0.0f, 0.0f, 0.0f };
+	float entityScale[3] = { 1.0f, 1.0f, 1.0f };
 };

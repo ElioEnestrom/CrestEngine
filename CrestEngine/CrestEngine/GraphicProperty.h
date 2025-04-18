@@ -20,4 +20,5 @@ private:
 	int textureIndex1;
 	int textureIndex2;
 	float textureMixer;
+	int objectShaderType;
 };

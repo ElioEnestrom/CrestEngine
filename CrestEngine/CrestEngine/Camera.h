@@ -14,6 +14,7 @@ namespace Camera {
 	glm::vec3 GetCameraPos();
 
 	glm::vec2 GetCameraRotation();
+	glm::vec3 GetCameraFront();
 	void SetCameraRotation(float newYaw, float newPitch);
 
 	void SetCameraPos(glm::vec3 newPos);

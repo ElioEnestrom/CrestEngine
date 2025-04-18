@@ -10,6 +10,21 @@ GeneralProperty::~GeneralProperty()
 {
 }
 
+void GeneralProperty::UpdatePropertyValues(Entity* entity)
+{
+	name = entity->name;
+	position = entity->position;
+	rotation = entity->rotation;
+	entityPosition[0] = entity->entityPosition[0];
+	entityPosition[1] = entity->entityPosition[1];
+	entityPosition[2] = entity->entityPosition[2];
+	entityRotation[0] = entity->entityRotation[0];
+	entityRotation[1] = entity->entityRotation[1];
+	entityRotation[2] = entity->entityRotation[2];
+	entityScale[0] = entity->entityScale[0];
+	entityScale[1] = entity->entityScale[1];
+	entityScale[2] = entity->entityScale[2];
+}
 bool GeneralProperty::WriteTo(std::iostream& file) const
 {
     size_t nameLength = name.size();
@@ -19,9 +34,11 @@ bool GeneralProperty::WriteTo(std::iostream& file) const
     file.write(reinterpret_cast<const char*>(&rotation), sizeof(rotation));
     file.write(reinterpret_cast<const char*>(&entityPosition), sizeof(entityPosition));
     file.write(reinterpret_cast<const char*>(&entityRotation), sizeof(entityRotation));
+	file.write(reinterpret_cast<const char*>(&entityScale), sizeof(entityScale));
 
     return file.good();
 }
+
 
 bool GeneralProperty::ReadFrom(std::iostream& file)
 {
@@ -33,6 +50,7 @@ bool GeneralProperty::ReadFrom(std::iostream& file)
     file.read(reinterpret_cast<char*>(&rotation), sizeof(rotation));
     file.read(reinterpret_cast<char*>(&entityPosition), sizeof(entityPosition));
     file.read(reinterpret_cast<char*>(&entityRotation), sizeof(entityRotation));
+	file.read(reinterpret_cast<char*>(&entityScale), sizeof(entityScale));
 
     return file.good();
 }
@@ -54,17 +72,8 @@ void GeneralProperty::UpdateEntity(Entity* entity) const
 	entity->entityRotation[0] = entityRotation[0];
 	entity->entityRotation[1] = entityRotation[1];
 	entity->entityRotation[2] = entityRotation[2];
+	entity->entityScale[0] = entityScale[0];
+	entity->entityScale[1] = entityScale[1];
+	entity->entityScale[2] = entityScale[2];
 }
 
-void GeneralProperty::UpdatePropertyValues(Entity* entity)
-{
-	name = entity->name;
-	position = entity->position;
-	rotation = entity->rotation;
-	entityPosition[0] = entity->entityPosition[0];
-	entityPosition[1] = entity->entityPosition[1];
-	entityPosition[2] = entity->entityPosition[2];
-	entityRotation[0] = entity->entityRotation[0];
-	entityRotation[1] = entity->entityRotation[1];
-	entityRotation[2] = entity->entityRotation[2];
-}

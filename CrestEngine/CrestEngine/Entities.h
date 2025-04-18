@@ -37,6 +37,16 @@ public:
 	int textureIndex2 = 0;
 	int objectShaderType;
 
+	float ambient;
+	float diffuse;
+	float specular;
+	float constant;
+	float linear;
+	float quadratic;
+
+	bool viewContainerSpecularMap;
+	bool isDirectionalLight;
+
 	GeneralProperty generalProperty;
 	ModelProperty modelProperty;
 	GraphicProperty graphicProperty;
@@ -72,6 +82,7 @@ private:
  class EntityManager {
  public:
 	Entity* CreateEntity();
+	void SpawnDirLight();
 	static void Allocate();
 	static EntityManager& Get();
 	
@@ -81,7 +92,11 @@ private:
 	void LoadLevel(std::iostream& file);
 
 	std::vector<Entity*> entities;
+	std::vector<Entity*> lightSources;
+	Entity* directionalLight = nullptr;
 	int amountOfEntities = 0;
+	int amountOfLights = 0;
+	int amountOfObjects = 0;
 	int amountOfLevels = 0;
 
  private:

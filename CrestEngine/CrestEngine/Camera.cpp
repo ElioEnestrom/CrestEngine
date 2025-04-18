@@ -70,6 +70,11 @@ namespace Camera {
 		return glm::vec2(yaw, pitch);
 	}
 
+	glm::vec3 GetCameraFront()
+	{
+		return cameraFront;
+	}
+
 	void SetCameraRotation(float newYaw, float newPitch)
 	{
 		yaw = newYaw;

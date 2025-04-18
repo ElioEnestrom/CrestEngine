@@ -8,7 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-
+#include "Materials.h"
 
 class Shader
 {
@@ -129,6 +129,17 @@ public:
     {
         glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
     }
+    void setVec3(const std::string& name, float vec) const
+    {
+		glUniform3f(glGetUniformLocation(ID, name.c_str()), vec, vec, vec);
+    }
+	void setMaterial(const std::string& name, const Material& material) const
+	{
+		setVec3(name + ".ambient", material.ambient);
+		setVec3(name + ".diffuse", material.diffuse);
+		setVec3(name + ".specular", material.specular);
+		setFloat(name + ".shininess", material.shininess);
+	}
 };
 
 #endif
