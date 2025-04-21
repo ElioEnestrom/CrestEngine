@@ -42,6 +42,7 @@
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void renderQuad();
 
 int main() 
 {
@@ -88,7 +89,9 @@ int main()
 	Shader lightingShader("Shaders/lightingshader.vs.txt", "Shaders/lightingshader.fs.txt");
 	Shader lightSourceShader("Shaders/lightsourceshader.vs.txt", "Shaders/lightsourceshader.fs.txt");
 	Shader normalViewShader("Shaders/normalviewshader.vs.txt", "Shaders/normalviewshader.fs.txt");
-	
+	Shader simpleDepthShader("Shaders/simpledepthshader.vs.txt", "Shaders/simpledepthshader.fs.txt");
+	Shader debugDepthQuad("Shaders/debugdepthquad.vs.txt", "Shaders/debugdepthquad.fs.txt");
+
 	std::vector<float> OBJvertices;
 	std::vector<float> OBJnormals;
 	std::vector<float> OBJtexCoords;
@@ -171,6 +174,24 @@ int main()
 	unsigned int specularContainerTexture = Texture::loadTexture("container2_specular.png");
 
 	ourShader.use();
+
+	unsigned int depthMapFBO;
+	glGenFramebuffers(1, &depthMapFBO);
+	unsigned int depthMap;
+	glGenTextures(1, &depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 
 
 	ourShader.setInt("material.specular", 2);
@@ -274,6 +295,7 @@ int main()
 			//std::cout << "Hit collider name: " << ray.hit.collider->GetTypeName() << std::endl;
 			//std::cout << "Hit distance: " << ray.hit.distance << std::endl;
 		}
+		float near_plane = 1.0f, far_plane = 7.5f;
 	
 	    if (drawCubes)
 	    {
@@ -285,109 +307,129 @@ int main()
 	        glm::mat4 projection = glm::perspective(glm::radians(Camera::GetFOV()), 800.0f / 600.0f, 0.1f, 100.0f);
 	        ourShader.setMat4("view", view);
 	        ourShader.setMat4("projection", projection);
+
+			glViewport(0, 0, 1024, 1024);
+			glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+			glClear(GL_DEPTH_BUFFER_BIT);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, depthMap);
+
+			glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+			glm::mat4 lightView = glm::lookAt(glm::vec3(-2.0f, 4.0f, -1.0f),
+											  glm::vec3(0.0f, 0.0f, 0.0f),
+											  glm::vec3(0.0f, 1.0f, 0.0f));
+
+			glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+			simpleDepthShader.use();
+			simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+
+			glViewport(0, 0, 1024, 1024);
+			glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+			glClear(GL_DEPTH_BUFFER_BIT);
 	
 	        for (Entity* entity : entityManager.entities)
 	        {
 	            if (entity != nullptr)
 	            {
 					glm::mat4 model;
-                    switch (entity->objectShaderType) {
-                        case LIGHT_SOURCE_SHADER:
-                            currentShader = lightSourceShader;
-                            currentShader.use();
-                            currentShader.setMat4("view", view);
-                            currentShader.setMat4("projection", projection);
-                            break;
-                        case OBJECT_SHADER:
-                            currentShader = ourShader;
-							currentShader.use();
-							currentShader.setFloat("textureMixer", entity->textureMixer);
-							
-							currentShader.setVec3("dirLight.direction", -entityManager.directionalLight->entityPosition);
-							currentShader.setVec3("dirLight.ambient", entityManager.directionalLight->ambient);
-							currentShader.setVec3("dirLight.diffuse", entityManager.directionalLight->diffuse);
-							currentShader.setVec3("dirLight.specular", entityManager.directionalLight->specular);
-
-
-							// point light 1
-							for (int i = 0; i < entityManager.lightSources.size(); i++)
-							{
-								currentShader.setBool("pointLights[" + std::to_string(i) + "].hasSpawned", true);
-								currentShader.setVec3("pointLights[" + std::to_string(i) + "].position", entityManager.lightSources[i]->entityPosition);
-								currentShader.setVec3("pointLights[" + std::to_string(i) + "].ambient", entityManager.lightSources[i]->ambient);
-								currentShader.setVec3("pointLights[" + std::to_string(i) + "].diffuse", entityManager.lightSources[i]->diffuse);
-								currentShader.setVec3("pointLights[" + std::to_string(i) + "].specular", entityManager.lightSources[i]->specular);
-								currentShader.setFloat("pointLights[" + std::to_string(i) + "].constant", entityManager.lightSources[i]->constant);
-								currentShader.setFloat("pointLights[" + std::to_string(i) + "].linear", entityManager.lightSources[i]->linear);
-								currentShader.setFloat("pointLights[" + std::to_string(i) + "].quadratic", entityManager.lightSources[i]->quadratic);
-
-							}
-
-							currentShader.setVec3("spotLight.position", Camera::GetCameraPos());
-							currentShader.setVec3("spotLight.direction", Camera::GetCameraFront());
-							currentShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-							currentShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
-							currentShader.setVec3("spotLight.ambient", 0.05f, 0.05f, 0.05f);
-							currentShader.setVec3("spotLight.diffuse", 0.8f, 0.8f, 0.8f);
-							currentShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-							currentShader.setFloat("spotLight.constant", 1.0f);
-							currentShader.setFloat("spotLight.linear", 0.09f);
-							currentShader.setFloat("spotLight.quadratic", 0.032f);
-							
-							currentShader.setFloat("material.shininess", 32.0f);
-
-							currentShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-							currentShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-							currentShader.setVec3("lightPos", glm::vec3(0, 1.0f, 0.0f));
-							currentShader.setVec3("viewPos", Camera::GetCameraPos());
-
-
-							currentShader.setVec3("light.position", Camera::GetCameraPos());
-							currentShader.setVec3("light.direction", Camera::GetCameraFront());
-							currentShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
-							currentShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
-
-							if (entity->viewContainerSpecularMap) 
-							{
-								currentShader.setBool("viewSpecular", true);
-							}
-							else
-							{
-								currentShader.setBool("viewSpecular", false);
-							}
-
-                            glActiveTexture(GL_TEXTURE0);
-                            glBindTexture(GL_TEXTURE_2D, textureIDs[entity->textureIndex1]);
-                            glActiveTexture(GL_TEXTURE1);
-                            glBindTexture(GL_TEXTURE_2D, textureIDs[entity->textureIndex2]);
-							glActiveTexture(GL_TEXTURE2);
-							glBindTexture(GL_TEXTURE_2D, specularContainerTexture);
-                            break;
-                        case LIGHTING_SHADER:
-                            currentShader = lightingShader;
-                            currentShader.use(); 
-							currentShader.setMaterial("material", TURQUOISE);
-							currentShader.setVec3("light.ambient", 1.0f, 1.0f, 1.0f);
-							currentShader.setVec3("light.diffuse", 1.0f, 1.0f, 1.0f); // darken diffuse light a bit
-							currentShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-							currentShader.setFloat("material.shininess", 32.0f);
-                            currentShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-                            currentShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-							currentShader.setVec3("lightPos", glm::vec3(0, 3.0f, -20.0f));
-							currentShader.setVec3("viewPos", Camera::GetCameraPos());
-                            currentShader.setMat4("view", view);
-                            currentShader.setMat4("projection", projection);
-                            break;
-                        default:
-                            // Handle unexpected shader type if necessary
-                            break;
-                    }
-					if (viewNormals) {
-						currentShader = normalViewShader;
-						currentShader.use();
-						currentShader.setMat4("view", view);
-						currentShader.setMat4("projection", projection);
-					}
+                    //switch (entity->objectShaderType) {
+                    //    case LIGHT_SOURCE_SHADER:
+                    //        currentShader = lightSourceShader;
+                    //        currentShader.use();
+                    //        currentShader.setMat4("view", view);
+                    //        currentShader.setMat4("projection", projection);
+                    //        break;
+                    //    case OBJECT_SHADER:
+                    //        currentShader = ourShader;
+					//		currentShader.use();
+					//		currentShader.setFloat("textureMixer", entity->textureMixer);
+					//		
+					//		currentShader.setVec3("dirLight.direction", -entityManager.directionalLight->entityPosition);
+					//		currentShader.setVec3("dirLight.ambient", entityManager.directionalLight->ambient);
+					//		currentShader.setVec3("dirLight.diffuse", entityManager.directionalLight->diffuse);
+					//		currentShader.setVec3("dirLight.specular", entityManager.directionalLight->specular);
+					//
+					//
+					//		// point light 1
+					//		for (int i = 0; i < entityManager.lightSources.size(); i++)
+					//		{
+					//			currentShader.setBool("pointLights[" + std::to_string(i) + "].hasSpawned", true);
+					//			currentShader.setVec3("pointLights[" + std::to_string(i) + "].position", entityManager.lightSources[i]->entityPosition);
+					//			currentShader.setVec3("pointLights[" + std::to_string(i) + "].ambient", entityManager.lightSources[i]->ambient);
+					//			currentShader.setVec3("pointLights[" + std::to_string(i) + "].diffuse", entityManager.lightSources[i]->diffuse);
+					//			currentShader.setVec3("pointLights[" + std::to_string(i) + "].specular", entityManager.lightSources[i]->specular);
+					//			currentShader.setFloat("pointLights[" + std::to_string(i) + "].constant", entityManager.lightSources[i]->constant);
+					//			currentShader.setFloat("pointLights[" + std::to_string(i) + "].linear", entityManager.lightSources[i]->linear);
+					//			currentShader.setFloat("pointLights[" + std::to_string(i) + "].quadratic", entityManager.lightSources[i]->quadratic);
+					//
+					//		}
+					//
+					//		currentShader.setVec3("spotLight.position", Camera::GetCameraPos());
+					//		currentShader.setVec3("spotLight.direction", Camera::GetCameraFront());
+					//		currentShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+					//		currentShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
+					//		currentShader.setVec3("spotLight.ambient", 0.05f, 0.05f, 0.05f);
+					//		currentShader.setVec3("spotLight.diffuse", 0.8f, 0.8f, 0.8f);
+					//		currentShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+					//		currentShader.setFloat("spotLight.constant", 1.0f);
+					//		currentShader.setFloat("spotLight.linear", 0.09f);
+					//		currentShader.setFloat("spotLight.quadratic", 0.032f);
+					//		
+					//		currentShader.setFloat("material.shininess", 32.0f);
+					//
+					//		currentShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+					//		currentShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+					//		currentShader.setVec3("lightPos", glm::vec3(0, 1.0f, 0.0f));
+					//		currentShader.setVec3("viewPos", Camera::GetCameraPos());
+					//
+					//
+					//		currentShader.setVec3("light.position", Camera::GetCameraPos());
+					//		currentShader.setVec3("light.direction", Camera::GetCameraFront());
+					//		currentShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+					//		currentShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
+					//
+					//		if (entity->viewContainerSpecularMap) 
+					//		{
+					//			currentShader.setBool("viewSpecular", true);
+					//		}
+					//		else
+					//		{
+					//			currentShader.setBool("viewSpecular", false);
+					//		}
+					//
+                    //        glActiveTexture(GL_TEXTURE0);
+                    //        glBindTexture(GL_TEXTURE_2D, textureIDs[entity->textureIndex1]);
+                    //        glActiveTexture(GL_TEXTURE1);
+                    //        glBindTexture(GL_TEXTURE_2D, textureIDs[entity->textureIndex2]);
+					//		glActiveTexture(GL_TEXTURE2);
+					//		glBindTexture(GL_TEXTURE_2D, specularContainerTexture);
+                    //        break;
+                    //    case LIGHTING_SHADER:
+                    //        currentShader = lightingShader;
+                    //        currentShader.use(); 
+					//		currentShader.setMaterial("material", TURQUOISE);
+					//		currentShader.setVec3("light.ambient", 1.0f, 1.0f, 1.0f);
+					//		currentShader.setVec3("light.diffuse", 1.0f, 1.0f, 1.0f); // darken diffuse light a bit
+					//		currentShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+					//		currentShader.setFloat("material.shininess", 32.0f);
+                    //        currentShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+                    //        currentShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+					//		currentShader.setVec3("lightPos", glm::vec3(0, 3.0f, -20.0f));
+					//		currentShader.setVec3("viewPos", Camera::GetCameraPos());
+                    //        currentShader.setMat4("view", view);
+                    //        currentShader.setMat4("projection", projection);
+                    //        break;
+                    //    default:
+                    //        // Handle unexpected shader type if necessary
+                    //        break;
+                    //}
+					//if (viewNormals) {
+					//	currentShader = normalViewShader;
+					//	currentShader.use();
+					//	currentShader.setMat4("view", view);
+					//	currentShader.setMat4("projection", projection);
+					//}
 
 	                currentObject = meshMap[entity->model]->vertices;
 	                currentBuffer = VAOs[meshMap[entity->model]->id];
@@ -415,7 +457,17 @@ int main()
 	            }
 	        }
 		}
-	
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, 800, 600);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		debugDepthQuad.use();
+		debugDepthQuad.setFloat("near_plane", near_plane);
+		debugDepthQuad.setFloat("far_plane", far_plane);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
+		renderQuad();
+
 	    ImGui::Render();
 	    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	
@@ -450,4 +502,33 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 void loadResources() {
 
+}
+
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+void renderQuad()
+{
+	if (quadVAO == 0)
+	{
+		float quadVertices[] = {
+			// positions        // texture Coords
+			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		};
+		// setup plane VAO
+		glGenVertexArrays(1, &quadVAO);
+		glGenBuffers(1, &quadVBO);
+		glBindVertexArray(quadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	}
+	glBindVertexArray(quadVAO);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
 }
