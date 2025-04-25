@@ -7,6 +7,7 @@
 #include "Mesh.h"
 #include "Camera.h"
 #include "Shader.h"
+#include "Texture.h"
 #include <map>
 
 
@@ -55,9 +56,7 @@ void ImguiManager::UpdateImGui(
     }
     ImGui::SameLine();
     if (ImGui::Button("Delete Object")) {
-        if (currentlySelected) {
-            if (currentlySelected->isDirectionalLight)
-                return;
+        if (currentlySelected && !currentlySelected->isDirectionalLight) {
 
             entityManager.DeleteEntity(currentlySelected);
             currentlySelected = nullptr;
@@ -172,6 +171,35 @@ void ImguiManager::UpdateImGui(
             ImGui::EndCombo();
         }
         ImGui::SliderFloat("Texture Mixer", &currentlySelected->textureMixer, 0.0f, 1.0f);
+
+        ImGui::Text("Mipmap Settings");
+        ImGui::Separator();
+
+        static int currentMipmapSetting = 0; // Default to the first setting
+        const char* mipmapOptions[] = {
+            "NEAREST",
+            "LINEAR",
+            "NEAREST_MIPMAP_NEAREST",
+            "LINEAR_MIPMAP_NEAREST",
+            "NEAREST_MIPMAP_LINEAR",
+            "LINEAR_MIPMAP_LINEAR"
+        };
+
+        if (ImGui::BeginCombo("Mipmap Setting", mipmapOptions[currentMipmapSetting])) {
+            for (int n = 0; n < IM_ARRAYSIZE(mipmapOptions); n++) {
+                const bool isSelected = (currentMipmapSetting == n);
+                if (ImGui::Selectable(mipmapOptions[n], isSelected)) {
+                    currentMipmapSetting = n;
+
+                    // Apply the selected mipmap setting to the texture
+                    Texture::MipmapSetting setting = static_cast<Texture::MipmapSetting>(n);
+                    Texture::switchMipmapSetting(currentlySelected->textureIndex1, setting);
+                    Texture::switchMipmapSetting(currentlySelected->textureIndex2, setting);
+                }
+                if (isSelected) ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
 
         ImGui::Spacing();
 

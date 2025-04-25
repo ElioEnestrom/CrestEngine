@@ -93,8 +93,8 @@ void EntityManager::SpawnDirLight()
     Entity* lightEntity = EntityManager::Get().CreateEntity();
 	lightEntity->name = "Directional Light";
 	lightEntity->objectShaderType = LIGHT_SOURCE_SHADER;
-	lightEntity->position = glm::vec3(0, 3.0f, 0.0f);
-	lightEntity->entityPosition = glm::vec3(0, 3.0f, 0.0f);
+	lightEntity->position = glm::vec3(-1.0f, 3.0f, 0.0f);
+	lightEntity->entityPosition = glm::vec3(-1.0f, 3.0f, 0.0f);
 	lightEntity->ambient = 0.05f;
 	lightEntity->diffuse = 0.8f;
 	lightEntity->specular = 1.0f;

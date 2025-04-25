@@ -61,6 +61,7 @@ uniform vec3 lightColor;
 uniform vec3 viewPos;
 uniform bool viewSpecular;
 
+uniform sampler2D shadowMap;
 uniform sampler2D texture1;
 uniform sampler2D texture2;
 uniform float textureMixer;
