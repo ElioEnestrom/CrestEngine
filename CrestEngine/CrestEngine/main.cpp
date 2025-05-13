@@ -38,6 +38,9 @@
 #include <functional>
 #include <map>
 
+#include <openxr/openxr.h>
+#include <openxr/openxr_platform.h>
+
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -51,7 +54,7 @@ const unsigned int SCREEN_HEIGHT = 1440.0f;
 
 int main() 
 {
-
+	
 	#pragma region Initialization
 	if (!glfwInit())
 	{
@@ -276,6 +279,8 @@ int main()
 	//		std::this_thread::sleep_for(std::chrono::seconds(1));
 	//	}
 	//});
+
+
 	while (!glfwWindowShouldClose(window))
 	{
 	    Input::ActivateInput(window);
