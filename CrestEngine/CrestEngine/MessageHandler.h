@@ -2,6 +2,7 @@
 
 #include <string>
 #include <map>
+#include <mutex>
 
 enum class MessageType {
 	String,

@@ -35,7 +35,7 @@ void MessageHandler::ProcessMessage(Message* message)
 		std::cout << "Mouse message: " << message->msg << std::endl;
 		break;
 	case MessageType::Object:
-		MeshManager::Get().ProcessMessage(message);
+		MeshManager::Get().loadOBJ(message->msg);
 		break;
 	case MessageType::FloatMessage:
 		std::cout << "Float message: " << message->msg << std::endl;

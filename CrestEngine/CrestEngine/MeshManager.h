@@ -3,6 +3,7 @@
 #include "MessageHandler.h"
 #include <list>
 #include <mutex>
+#include <condition_variable>
 
 class MeshManager {
 
@@ -11,9 +12,11 @@ class MeshManager {
 public:
 	static void Allocate();
 	static MeshManager& Get();
-	void ProcessMessage(Message* message);
+	void ProcessMessage();
 
-	static void* loadOBJ(const std::string& filename);
+	static void loadOBJ(const std::string& filename);
+	void AddToMeshList(Mesh* mesh);
+	void WaitForMeshLoadingComplete();
 	Mesh* GetMesh(std::string filename);
 
 	std::list<Mesh*> meshList;
@@ -24,8 +27,10 @@ public:
 		{MessageType::Object, "Sphere.obj"}
 	};
 
+	bool loadingComplete = false;
 	unsigned int id;
 private:
 	std::mutex meshMutex;
+	std::condition_variable loadingCV;
 	static MeshManager* instance;
 };

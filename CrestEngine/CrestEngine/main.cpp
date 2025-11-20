@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <cstring>
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -41,6 +42,8 @@
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 
+#include "OpenXrProgram.h"
+
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -52,9 +55,17 @@ const unsigned int SCREEN_HEIGHT = 1440.0f;
 
 
 
-int main() 
+int main(int argc, char** argv) 
 {
-	
+    // Run in VR if launched with --vr
+    for (int i = 1; i < argc; ++i) {
+        if (std::strcmp(argv[i], "--vr") == 0) {
+            auto program = sample::CreateOpenXrProgram("CrestEngine", sample::CreateCubeGraphics());
+            program->Run();
+            return 0;
+        }
+    }
+
 	#pragma region Initialization
 	if (!glfwInit())
 	{
@@ -90,6 +101,9 @@ int main()
 
 #pragma endregion 
 
+	MeshManager::Allocate();
+	MessageQueue::Get().WorkerThreadStart(MeshManager::Get().objMessages.size());
+
 	//Shader ourShader("Shaders/texturelightingshader.vs.txt", "Shaders/texturelightingshader.fs.txt");
 	//Shader ourShader("Shaders/texturedirectionallightingshader.vs.txt", "Shaders/texturedirectionallightingshader.fs.txt");
 	//Shader ourShader("Shaders/texturespotlightingshader.vs.txt", "Shaders/texturespotlightingshader.fs.txt");
@@ -112,18 +126,20 @@ int main()
 	std::vector<Vertex> finalVerticesFlag;
 	std::vector<Vertex> currentObject;
 
-	MeshManager::Allocate();
 	EntityManager::Allocate();
 
-    for (auto& message : MeshManager::Get().objMessages) {
-        MessageQueue::Get().QueueMessage(&message);
-    }
+	for (int i = 0; i < MeshManager::Get().objMessages.size(); i++) 
+		MessageQueue::Get().QueueMessage(&MeshManager::Get().objMessages[i]);
 
 	unsigned int currentBuffer = 0;
 
 	std::unordered_map<std::string, Mesh*> meshMap;
 	std::unordered_map<unsigned int, unsigned int> VBOs;
 	std::unordered_map<unsigned int, unsigned int> VAOs;
+
+	//MessageQueue::Get().WorkerThreadEnd();
+
+	MeshManager::Get().WaitForMeshLoadingComplete();
 
 	for (auto& mesh : MeshManager::Get().meshList)
 	{

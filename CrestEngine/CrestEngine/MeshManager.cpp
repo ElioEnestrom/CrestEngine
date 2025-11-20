@@ -1,4 +1,3 @@
-
 #include "MeshManager.h"
 #include "MemoryChecker.h"
 #include <fstream>
@@ -28,26 +27,23 @@ MeshManager& MeshManager::Get() {
 	return *instance;
 }
 
-void MeshManager::ProcessMessage(Message* message)
-{
-	std::string msg = message->msg;
-	    for (const auto& objMessage : objMessages) {
-	    	if (msg == objMessage.msg) {
+//void MeshManager::ProcessMessage()
+//{
+//    std::vector<std::thread> meshThreads;
+//    for (int i = 0; i < objMessages.size(); i++) {
+//        meshThreads.emplace_back([this, i]() {
+//            loadOBJ(objMessages[i].msg); 
+//        });
+//    }
+//    for (auto& t : meshThreads)
+//    {
+//        t.join();
+//    }
+//    return;
+//    //std::cerr << "Unknown message: " << msg << std::endl;
+//}
 
-                std::async(std::launch::async, [=] {
-                    std::lock_guard<std::mutex> lock(meshMutex);
-
-                    std::string filename = message->msg;
-                    loadOBJ(filename);
-                    });
-                
-                return;
-	    	}
-	    }
-    std::cerr << "Unknown message: " << msg << std::endl;
-}
-
-void* MeshManager::loadOBJ(const std::string& filename)
+void MeshManager::loadOBJ(const std::string& filename)
 {
     std::vector<float> vertices;
     std::vector<float> normals;
@@ -60,22 +56,20 @@ void* MeshManager::loadOBJ(const std::string& filename)
     std::fstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Failed to open OBJ file: " << filename << std::endl;
-        return nullptr;
+        return;
     }
 
     std::fstream deSerializeFile(filename + ".binaryThingy", std::ios::in | std::ios::binary);
     if (!file.is_open()) {
         std::cerr << "Failed to open OBJ file: " << filename << std::endl;
-        return nullptr;
+        return;
     }
         
     Mesh* deserializeMesh = new Mesh();
     if (deserializeMesh->Deserialize(deSerializeFile)) {
         std::cerr << "Successfully deserialized mesh from file: " << filename << std::endl;
-        MeshManager::Get().meshList.push_back(deserializeMesh);
-        deserializeMesh->id = MeshManager::Get().id;
-        MeshManager::Get().id++;
-        return deserializeMesh;
+		MeshManager::Get().AddToMeshList(deserializeMesh);
+        return;
     }
 
     //Reset the file stream to the beginning for OBJ parsing
@@ -92,7 +86,7 @@ void* MeshManager::loadOBJ(const std::string& filename)
     if (!memoryChecker.CheckMemory(static_cast<float>(fileSize)/ 1000000)) {
         std::cerr << "Not enough memory to load OBJ file: " << filename << std::endl;
 		std::cerr << "File size: " << fileSize << " bytes" << std::endl;
-        return nullptr;
+        return;
     }
 	memoryChecker.CheckMemory();
 
@@ -182,16 +176,34 @@ void* MeshManager::loadOBJ(const std::string& filename)
         vertexIndex.push_back(static_cast<unsigned int>(normalIndex[i]));
     }
 
-    MeshManager::Get().meshList.push_back(newMesh);
-    newMesh->id = MeshManager::Get().id;
-    MeshManager::Get().id++;
+	
+	MeshManager::Get().AddToMeshList(newMesh);
 
     std::fstream serializeFile(filename + ".binaryThingy", std::ios::out | std::ios::binary);
     if (!file.is_open()) {
         std::cerr << "Failed to open OBJ file: " << filename << std::endl;
-        return nullptr;
+        return;
     }
 	newMesh->Serialize(serializeFile, vertexIndex);
+}
+
+void MeshManager::AddToMeshList(Mesh* mesh) {
+	std::lock_guard<std::mutex> lock(meshMutex);
+
+    MeshManager::Get().meshList.push_back(mesh);
+    mesh->id = MeshManager::Get().id;
+    MeshManager::Get().id++;
+
+	if (meshList.size() == objMessages.size()) {
+		loadingComplete = true;
+		loadingCV.notify_all();  
+		std::cout << "All meshes loaded successfully!" << std::endl;
+	}
+}
+
+void MeshManager::WaitForMeshLoadingComplete() {
+	std::unique_lock<std::mutex> lock(meshMutex);
+	loadingCV.wait(lock, [this] { return loadingComplete; });
 }
 
 Mesh* MeshManager::GetMesh(std::string filename)
