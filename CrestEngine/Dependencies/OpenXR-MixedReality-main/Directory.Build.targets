@@ -1,9 +1,0 @@
-<Project>
-
-    <ItemDefinitionGroup>
-        <ClCompile>
-            <AdditionalIncludeDirectories>$(OpenXrSdkPath)\include;$(SharedPath);$(SharedPath)\ext;$(IntDir);%(AdditionalIncludeDirectories);</AdditionalIncludeDirectories>
-        </ClCompile>
-    </ItemDefinitionGroup>
-
-</Project>
