@@ -46,6 +46,24 @@
 
 
 
+// Add Windows-specific includes for console handling
+#ifdef _WIN32
+#include <windows.h>
+#include <csignal>
+
+std::atomic<bool> g_shouldExit(false);
+
+BOOL WINAPI ConsoleHandler(DWORD signal) {
+    if (signal == CTRL_CLOSE_EVENT || signal == CTRL_C_EVENT) {
+        g_shouldExit = true;
+        // Give the program time to cleanup
+        Sleep(2000);
+        return TRUE;
+    }
+    return FALSE;
+}
+#endif
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void renderQuad();
@@ -55,13 +73,23 @@ const unsigned int SCREEN_HEIGHT = 1440.0f;
 
 
 
+
+
 int main(int argc, char** argv) 
 {
     // Run in VR if launched with --vr
     for (int i = 1; i < argc; ++i) {
         if (std::strcmp(argv[i], "--vr") == 0) {
-            auto program = sample::CreateOpenXrProgram("CrestEngine", sample::CreateCubeGraphics());
-            program->Run();
+#ifdef _WIN32
+            // Set up console close handler for VR mode
+            if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE)) {
+                std::cerr << "Warning: Could not set console handler" << std::endl;
+            }
+#endif
+            {
+                auto program = sample::CreateOpenXrProgram("CrestEngine", sample::CreateCubeGraphics());
+                program->Run();
+            }
             return 0;
         }
     }

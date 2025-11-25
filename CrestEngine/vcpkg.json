@@ -1,0 +1,13 @@
+{
+  "name": "crestengine",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "openxr-loader",
+    "glfw3",
+    "glad",
+    "glm",
+    "stb",
+    "imgui"
+  ],
+  "builtin-baseline": "cf1490f51190945a70666eaeeb6f63482da080b5"
+}

@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
+    <VcpkgTriplet>x86-windows</VcpkgTriplet>
+    <VcpkgRoot>C:\vcpkg\</VcpkgRoot>
+  </PropertyGroup>
+</Project>
