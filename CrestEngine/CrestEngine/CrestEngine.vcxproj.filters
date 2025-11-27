@@ -103,6 +103,12 @@
     <Filter Include="Source Files\OpenXrSamples">
       <UniqueIdentifier>{9eed8017-1f13-4f57-aea1-8044c3a492b7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Rendering">
+      <UniqueIdentifier>{b06cdab9-cc60-4bb0-92b9-f70974699ef4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Rendering">
+      <UniqueIdentifier>{fad945de-ff7c-41eb-8ef8-8f103bffa5bb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -198,17 +204,8 @@
     <ClCompile Include="Math.cpp">
       <Filter>Source Files\Math</Filter>
     </ClCompile>
-    <ClCompile Include="OpenXrProgram.cpp">
-      <Filter>Source Files\VR</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Dependencies\OpenXR-MixedReality-main\samples\BasicXrApp\CubeGraphics.cpp">
+    <ClCompile Include="RenderingManager.cpp">
       <Filter>Source Files\OpenXrSamples</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Dependencies\OpenXR-MixedReality-main\samples\BasicXrApp\DxUtility.cpp">
-      <Filter>Source Files\OpenXrSamples</Filter>
-    </ClCompile>
-    <ClCompile Include="CubeGraphicsGL.cpp">
-      <Filter>Source Files\VR</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -290,25 +287,13 @@
     <ClInclude Include="Materials.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="OpenXrProgram.h">
-      <Filter>Header Files\VR</Filter>
-    </ClInclude>
-    <ClInclude Include="DxUtility.h">
-      <Filter>Header Files\VR</Filter>
-    </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>Header Files\VR</Filter>
     </ClInclude>
-    <ClInclude Include="XrListFunctions.h">
-      <Filter>Header Files\VR</Filter>
+    <ClInclude Include="RenderingManager.h">
+      <Filter>Header Files\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="XrExtensionDefined.h">
-      <Filter>Header Files\VR</Filter>
-    </ClInclude>
-    <ClInclude Include="XrToString.h">
-      <Filter>Header Files\VR</Filter>
-    </ClInclude>
-    <ClInclude Include="OpenXrProgramOpenGL.h">
+    <ClInclude Include="RenderingTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

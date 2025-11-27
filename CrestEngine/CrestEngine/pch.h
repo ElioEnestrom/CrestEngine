@@ -38,6 +38,8 @@
     #define XR_USE_GRAPHICS_API_D3D11
 #endif
 
+#define XR_USE_GRAPHICS_API_OPENGL
+#define XR_USE_PLATFORM_WIN32
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 #include <openxr/openxr_reflection.h>

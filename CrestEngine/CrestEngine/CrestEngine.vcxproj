@@ -182,7 +182,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\GLFW\include;$(SolutionDir)Dependencies\Glad;$(SolutionDir)Dependencies\Stbimage;$(SolutionDir)Dependencies\GLM\glm;$(SolutionDir)Dependencies\imgui;$(SolutionDir)Dependencies\imgui\misc\cpp;$(SolutionDir)Dependencies\imgui\backends;$(SolutionDir)Dependencies\OpenXR-SDK-main\include;$(SolutionDir)Dependencies\OpenXR-MixedReality-main\openxr_preview\include;$(SolutionDir)Dependencies\OpenXR-MixedReality-main\shared;$(SolutionDir)Dependencies\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\GLFW\include;$(SolutionDir)Dependencies\Glad;$(SolutionDir)Dependencies\Stbimage;$(SolutionDir)Dependencies\GLM\glm;$(SolutionDir)Dependencies\imgui;$(SolutionDir)Dependencies\imgui\misc\cpp;$(SolutionDir)Dependencies\imgui\backends;$(SolutionDir)Dependencies\OpenXR-SDK-main\include;$(SolutionDir)Dependencies\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -214,11 +214,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Dependencies\OpenXR-MixedReality-main\samples\BasicXrApp\CubeGraphics.cpp" />
-    <ClCompile Include="..\Dependencies\OpenXR-MixedReality-main\samples\BasicXrApp\DxUtility.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Collision.cpp" />
-    <ClCompile Include="CubeGraphicsGL.cpp" />
     <ClCompile Include="Entities.cpp" />
     <ClCompile Include="EntityProperty.cpp" />
     <ClCompile Include="GeneralProperty.cpp" />
@@ -244,8 +241,8 @@
     <ClCompile Include="MessageQueue.cpp" />
     <ClCompile Include="ModelProperty.cpp" />
     <ClCompile Include="OBJLoader.cpp" />
-    <ClCompile Include="OpenXrProgram.cpp" />
     <ClCompile Include="PhysicsManager.cpp" />
+    <ClCompile Include="RenderingManager.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Time.cpp" />
@@ -253,7 +250,6 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Collision.h" />
-    <ClInclude Include="DxUtility.h" />
     <ClInclude Include="Entities.h" />
     <ClInclude Include="EntityProperty.h" />
     <ClInclude Include="GeneralProperty.h" />
@@ -272,18 +268,15 @@
     <ClInclude Include="MessageQueue.h" />
     <ClInclude Include="ModelProperty.h" />
     <ClInclude Include="OBJLoader.h" />
-    <ClInclude Include="OpenXrProgram.h" />
-    <ClInclude Include="OpenXrProgramOpenGL.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PhysicsManager.h" />
     <ClInclude Include="RayCast.h" />
+    <ClInclude Include="RenderingManager.h" />
+    <ClInclude Include="RenderingTypes.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SphereCollider.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Time.h" />
-    <ClInclude Include="XrExtensionDefined.h" />
-    <ClInclude Include="XrListFunctions.h" />
-    <ClInclude Include="XrToString.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
