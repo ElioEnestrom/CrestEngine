@@ -41,3 +41,10 @@ struct RenderContext {
 	unsigned int depthMap;
 	bool viewNormals;
 };
+
+struct RenderResources {
+	std::unordered_map<std::string, Mesh*> meshMap;
+	std::unordered_map<unsigned int, unsigned int> VBOs;
+	std::unordered_map<unsigned int, unsigned int> VAOs;
+	unsigned int lightVAO;
+};

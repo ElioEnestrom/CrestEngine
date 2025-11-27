@@ -5,6 +5,7 @@
 #include <vector>
 #include <unordered_map>
 #include <string>
+#include "RenderingTypes.h"
 
 class ImguiManager
 {
@@ -12,9 +13,7 @@ public:
 	void UpdateImGui(
 		bool drawCubes,
 		EntityManager& entityManager,
-		Entity*& currentlySelected,
 		std::vector<std::string>& modelNames,
-		int& currentModelIndex,
 		std::vector<Vertex>& currentObject,
 		std::unordered_map<std::string,
 		Mesh*>& meshMap,
@@ -22,11 +21,16 @@ public:
 		std::unordered_map<unsigned int,
 		unsigned int>& VAOs,
 		std::vector<std::string>& textureNames,
-		int& texture1Index,
-		int& texture2Index,
-		float& textureMixer,
 		bool& normalView,
 		Shader& ourShader);
+
+	void InitializeImGui(WindowContext context);
+
+	int currentModelIndex = 0;
+	int texture1Index = 0;
+	int texture2Index = 1;
+	float textureMixer = 0.35f;
+	Entity* currentlySelected = nullptr;
 
 	//ImguiManager();
 	//~ImguiManager();

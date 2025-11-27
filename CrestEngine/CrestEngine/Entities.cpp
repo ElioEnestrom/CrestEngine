@@ -87,6 +87,7 @@ glm::mat4 Entity::GetTransform()
         * rotation
         * glm::scale(glm::mat4(1.0f), entityScale);
 }
+
 void EntityManager::SpawnDirLight()
 {
 	// Create a new entity for the directional light

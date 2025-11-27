@@ -210,3 +210,14 @@ Mesh* MeshManager::GetMesh(std::string filename)
 {
     return nullptr;
 }
+
+void MeshManager::InitializeAndLoadMeshes() {
+	MessageQueue::Get().WorkerThreadStart(objMessages.size());
+
+	for (int i = 0; i < objMessages.size(); i++) {
+		MessageQueue::Get().QueueMessage(&objMessages[i]);
+	}
+    //MessageQueue::Get().WorkerThreadEnd();
+
+	WaitForMeshLoadingComplete();
+}

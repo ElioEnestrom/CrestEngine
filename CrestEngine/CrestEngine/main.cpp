@@ -77,6 +77,7 @@ const unsigned int SCREEN_HEIGHT = 1440;
 WindowContext InitializeWindow(); 
 ShaderResources LoadShaders();
 TextureResources LoadTextures();
+RenderResources InitializeRenderResources();
 
 void RenderEntity(Entity* entity, Shader& currentShader, 
 	EntityManager& entityManager, const RenderContext& context,
@@ -91,116 +92,44 @@ int main(int argc, char** argv)
 {
 	ShouldLoadVR(argc, argv);
 
-#pragma region Initialization
+#pragma region Initialize Window
 
 	WindowContext windowContext;
 	windowContext = InitializeWindow();
 
 #pragma endregion 
 
+#pragma region General Initialization
+
 	MeshManager::Allocate();
-	MessageQueue::Get().WorkerThreadStart(MeshManager::Get().objMessages.size());
+	MeshManager& meshManager = MeshManager::Get();
+	meshManager.InitializeAndLoadMeshes();
+
+	EntityManager::Allocate();
+	EntityManager& entityManager = EntityManager::Get();
+	entityManager.SpawnDirLight();
 
 	ShaderResources shaderResources = LoadShaders();
 
-	//Shader ourShader("Shaders/texturelightingshader.vs.txt", "Shaders/texturelightingshader.fs.txt");
-	//Shader ourShader("Shaders/texturedirectionallightingshader.vs.txt", "Shaders/texturedirectionallightingshader.fs.txt");
-	//Shader ourShader("Shaders/texturespotlightingshader.vs.txt", "Shaders/texturespotlightingshader.fs.txt");
-
-
-	std::vector<float> OBJvertices;
-	std::vector<float> OBJnormals;
-	std::vector<float> OBJtexCoords;
-	std::vector<unsigned int> OBJpositionIndex;
-	std::vector<unsigned int> OBJtextureIndex;
-	std::vector<unsigned int> OBJnormalIndex;
-	std::vector<unsigned int> OBJvertexIndex;
-	std::vector<Vertex> finalVerticesCube;
-	std::vector<Vertex> finalVerticesFlag;
-	std::vector<Vertex> currentObject;
-
-	EntityManager::Allocate();
-
-	for (int i = 0; i < MeshManager::Get().objMessages.size(); i++)
-		MessageQueue::Get().QueueMessage(&MeshManager::Get().objMessages[i]);
-
-	unsigned int currentBuffer = 0;
-
-	std::unordered_map<std::string, Mesh*> meshMap;
-	std::unordered_map<unsigned int, unsigned int> VBOs;
-	std::unordered_map<unsigned int, unsigned int> VAOs;
-
-	//MessageQueue::Get().WorkerThreadEnd();
-
-	MeshManager::Get().WaitForMeshLoadingComplete();
-
-	for (auto& mesh : MeshManager::Get().meshList)
-	{
-		meshMap[mesh->path] = mesh;
-	}
-
-	for (auto& currentMesh : MeshManager::Get().meshList)
-	{
-		unsigned int VAO;
-		unsigned int VBO;
-		glGenVertexArrays(1, &VAO);
-		glGenBuffers(1, &VBO);
-		glBindVertexArray(VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, currentMesh->vertices.size() * sizeof(Vertex), currentMesh->vertices.data(), GL_STATIC_DRAW);
-
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(5 * sizeof(float)));
-		glEnableVertexAttribArray(2);
-
-		//void* data = glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
-		//if (data) {
-		//	Vertex* vertices = static_cast<Vertex*>(data);
-		//	for (size_t i = 0; i < currentMesh->vertices.size(); ++i) {
-		//		std::cout << "Normal from VBO: ("
-		//			<< vertices[i].normal.x << ", "
-		//			<< vertices[i].normal.y << ", "
-		//			<< vertices[i].normal.z << ")" << std::endl;
-		//	}
-		//	glUnmapBuffer(GL_ARRAY_BUFFER);
-		//}
-		VAOs[currentMesh->id] = VAO;
-		VBOs[currentMesh->id] = VBO;
-	}
-	unsigned int lightVAO;
-	glGenVertexArrays(1, &lightVAO);
-	glBindVertexArray(lightVAO);
-	// we only need to bind to the VBO, the container's VBO's data already contains the data.
-	glBindBuffer(GL_ARRAY_BUFFER, VBOs[3]);
-	// set the vertex attribute 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
+	RenderResources renderResources;
+	renderResources = InitializeRenderResources();
 
 	TextureResources textureResources;
 	textureResources = LoadTextures();
 
 	// Initialize RenderingManager
 	RenderingManager renderingManager;
-	renderingManager.Initialize(SCREEN_WIDTH, SCREEN_HEIGHT, &shaderResources, &meshMap, &VAOs, &textureResources);
+	renderingManager.Initialize(SCREEN_WIDTH, SCREEN_HEIGHT, &shaderResources, &renderResources.meshMap, &renderResources.VAOs, &textureResources);
 
 	// Setup Dear ImGui context
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	// Setup Platform/Renderer backends
-	ImGui_ImplGlfw_InitForOpenGL(windowContext.window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
-	ImGui_ImplOpenGL3_Init("#version 330");
+	ImguiManager imguiManager;
+	imguiManager.InitializeImGui(windowContext);
 
-	float xLocation = 0;
-	float yLocation = 0;
+
+#pragma endregion 
+
 	//glm::mat4 trans = glm::mat4(1.0f);
 
-	EntityManager& entityManager = EntityManager::Get();
-	Entity* currentlySelected = nullptr;
 	bool drawCubes = true;
 	//float cubePosition[3] = { 0, -5, -10.0f };
 	//float cubeRotation[3] = { 0, 0, 0 };
@@ -210,15 +139,11 @@ int main(int argc, char** argv)
 		modelNames.push_back(mesh->path);
 	}
 
-	int currentModelIndex = 0;
+	std::vector<Vertex> currentObject;
+	unsigned int currentBuffer = 0;
+	currentBuffer = renderResources.VAOs[renderResources.meshMap["Flag.obj"]->id];
+	currentObject = renderResources.meshMap["Flag.obj"]->vertices;
 
-	currentBuffer = VAOs[meshMap["Flag.obj"]->id];
-	currentObject = meshMap["Flag.obj"]->vertices;
-
-	int texture1Index = 0;
-	int texture2Index = 1;
-	int currentTextureIndex = 0;
-	float textureMixer = 0.35f;
 	Physics::PhysicsManager physicsManager;
 
 	bool viewNormals = false;
@@ -235,7 +160,6 @@ int main(int argc, char** argv)
 
 	Shader currentShader = shaderResources.ourShader;
 
-	entityManager.SpawnDirLight();
 
 	glfwSetKeyCallback(windowContext.window, key_callback);
 	//std::thread messageThread([] {
@@ -257,21 +181,15 @@ int main(int argc, char** argv)
 		glClearColor(0.1, 0.1, 0.1, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		ImguiManager imguiManager;
 		imguiManager.UpdateImGui(
 			drawCubes,
 			entityManager,
-			currentlySelected,
 			modelNames,
-			currentModelIndex,
 			currentObject,
-			meshMap,
+			renderResources.meshMap,
 			currentBuffer,
-			VAOs,
+			renderResources.VAOs,
 			textureResources.textureNames,
-			texture1Index,
-			texture2Index,
-			textureMixer,
 			viewNormals,
 			shaderResources.ourShader);
 
@@ -331,7 +249,7 @@ int main(int argc, char** argv)
 					model = glm::scale(model, entity->scale);
 					shaderResources.simpleDepthShader.setMat4("model", model);
 
-					currentBuffer = VAOs[meshMap[entity->model]->id];
+					currentBuffer = renderResources.VAOs[renderResources.meshMap[entity->model]->id];
 
 					glActiveTexture(GL_TEXTURE0);
 					glBindTexture(GL_TEXTURE_2D, renderingManager.GetDepthMap());
@@ -341,15 +259,15 @@ int main(int argc, char** argv)
 					glBindTexture(GL_TEXTURE_2D, textureResources.textureIDs[entity->textureIndex2]);
 					//glBindTexture(GL_TEXTURE_2D, depthMap);
 
-					glBindVertexArray(VAOs[meshMap[entity->model]->id]);
-					glDrawArrays(GL_TRIANGLES, 0, meshMap[entity->model]->vertices.size());
+					glBindVertexArray(renderResources.VAOs[renderResources.meshMap[entity->model]->id]);
+					glDrawArrays(GL_TRIANGLES, 0, renderResources.meshMap[entity->model]->vertices.size());
 				}
 			}
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			RenderContext renderContext = {meshMap, VAOs, textureResources, shaderResources, renderingManager.GetDepthMap(), viewNormals};
+			RenderContext renderContext = { renderResources.meshMap, renderResources.VAOs, textureResources, shaderResources, renderingManager.GetDepthMap(), viewNormals};
 
 			for (Entity* entity : entityManager.entities)
 			{
@@ -480,6 +398,10 @@ WindowContext InitializeWindow() {
 
 ShaderResources LoadShaders() {
     return {
+		//Shader ourShader("Shaders/texturelightingshader.vs.txt", "Shaders/texturelightingshader.fs.txt");
+//Shader ourShader("Shaders/texturedirectionallightingshader.vs.txt", "Shaders/texturedirectionallightingshader.fs.txt");
+//Shader ourShader("Shaders/texturespotlightingshader.vs.txt", "Shaders/texturespotlightingshader.fs.txt");
+
         Shader("Shaders/lightShader.vs.txt", "Shaders/lightShader.fs.txt"),
         Shader("Shaders/lightingshader.vs.txt", "Shaders/lightingshader.fs.txt"),
         Shader("Shaders/lightsourceshader.vs.txt", "Shaders/lightsourceshader.fs.txt"),
@@ -642,4 +564,46 @@ void RenderEntity(Entity* entity, Shader& currentShader,
 	currentShader.setMat4("model", model);
 
 	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)context.meshMap.at(entity->model)->vertices.size());
+}
+
+RenderResources InitializeRenderResources() {
+    RenderResources resources;
+    
+    MeshManager::Get().WaitForMeshLoadingComplete();
+    
+    for (auto& mesh : MeshManager::Get().meshList) {
+        resources.meshMap[mesh->path] = mesh;
+    }
+    
+    for (auto& currentMesh : MeshManager::Get().meshList) {
+        unsigned int VAO, VBO;
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glBindVertexArray(VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, currentMesh->vertices.size() * sizeof(Vertex), 
+                     currentMesh->vertices.data(), GL_STATIC_DRAW);
+        
+        // Position attribute
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+        glEnableVertexAttribArray(0);
+        // TexCoord attribute
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+        // Normal attribute
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(5 * sizeof(float)));
+        glEnableVertexAttribArray(2);
+        
+        resources.VAOs[currentMesh->id] = VAO;
+        resources.VBOs[currentMesh->id] = VBO;
+    }
+    
+    // Initialize light VAO
+    glGenVertexArrays(1, &resources.lightVAO);
+    glBindVertexArray(resources.lightVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, resources.VBOs[3]);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    
+    return resources;
 }

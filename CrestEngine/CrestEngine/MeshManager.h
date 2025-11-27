@@ -4,6 +4,7 @@
 #include <list>
 #include <mutex>
 #include <condition_variable>
+#include "MessageQueue.h"
 
 class MeshManager {
 
@@ -13,6 +14,7 @@ public:
 	static void Allocate();
 	static MeshManager& Get();
 	void ProcessMessage();
+	void InitializeAndLoadMeshes();
 
 	static void loadOBJ(const std::string& filename);
 	void AddToMeshList(Mesh* mesh);
@@ -21,10 +23,10 @@ public:
 
 	std::list<Mesh*> meshList;
 	std::vector<Message> objMessages = {
+		{MessageType::Object, "Sphere.obj"},
 		{MessageType::Object, "Flag.obj"},
 		{MessageType::Object, "Viking_House.obj"},
-		{MessageType::Object, "Cube2.obj"},
-		{MessageType::Object, "Sphere.obj"}
+		{MessageType::Object, "Cube2.obj"}
 	};
 
 	bool loadingComplete = false;

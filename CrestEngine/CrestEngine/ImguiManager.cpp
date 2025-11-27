@@ -14,17 +14,12 @@
 void ImguiManager::UpdateImGui(
     bool drawCubes,
     EntityManager& entityManager,
-    Entity*& currentlySelected,
     std::vector<std::string>& modelNames,
-    int& currentModelIndex,
     std::vector<Vertex>& currentObject,
     std::unordered_map<std::string, Mesh*>& meshMap,
     unsigned int& currentBuffer,
     std::unordered_map<unsigned int, unsigned int>& VAOs,
     std::vector<std::string>& textureNames,
-    int& texture1Index,
-    int& texture2Index,
-    float& textureMixer,
     bool& normalView,
     Shader& ourShader)
 {
@@ -262,4 +257,15 @@ void ImguiManager::UpdateImGui(
     Camera::SetCameraRotation(cameraRotationArray[0], cameraRotationArray[1]);
 
     ImGui::End();
+}
+
+void ImguiManager::InitializeImGui(WindowContext context)
+{
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(context.window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+    ImGui_ImplOpenGL3_Init("#version 330");
 }
