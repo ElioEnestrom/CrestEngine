@@ -62,3 +62,44 @@ void RenderingManager::SetupShadowMapping(unsigned int width, unsigned int heigh
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
+void RenderingManager::RenderShadowPass(
+    EntityManager& entityManager,
+    const RenderResources& renderResources,
+    const TextureResources& textureResources,
+    Shader& simpleDepthShader,
+    unsigned int depthMapFBO,
+    const glm::mat4& lightSpaceMatrix)
+{
+    unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+
+    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    simpleDepthShader.use();
+    simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+
+    for (Entity* entity : entityManager.entities)
+    {
+        if (entity != nullptr)
+        {
+            glm::mat4 model = entity->CreateTransformMatrix(
+                entity->entityPosition,
+                entity->rotation,
+                entity->scale);
+            simpleDepthShader.setMat4("model", model);
+
+            //glActiveTexture(GL_TEXTURE0);
+            //glBindTexture(GL_TEXTURE_2D, renderingManager.GetDepthMap());
+            //glActiveTexture(GL_TEXTURE1);
+            //glBindTexture(GL_TEXTURE_2D, textureResources.textureIDs[entity->textureIndex1]);
+            //glActiveTexture(GL_TEXTURE2);
+            //glBindTexture(GL_TEXTURE_2D, textureResources.textureIDs[entity->textureIndex2]);
+
+            glBindVertexArray(renderResources.VAOs.at(renderResources.meshMap.at(entity->model)->id));
+            glDrawArrays(GL_TRIANGLES, 0, renderResources.meshMap.at(entity->model)->vertices.size());
+        }
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}

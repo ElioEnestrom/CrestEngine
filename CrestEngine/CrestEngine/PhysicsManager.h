@@ -31,8 +31,12 @@ namespace Physics {
 	
 		bool RayCast(Ray& aRay);
 		bool CheckRayIntersect(Ray& aRay, Collider* aCollider);
+
+		void InitializeTestRayCast();
+		void TestRayCast();
 	
-	
+		Ray testRay;
+
 		std::vector<Collider*> colliders;
 		//PlaneCollider* main_plane;
 	};

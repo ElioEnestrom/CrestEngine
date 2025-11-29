@@ -21,6 +21,7 @@ public:
 
 class Ray {
 public:
+	Ray() : origin(0.0f), direction(0.0f, 0.0f, 1.0f) {} // Default constructor
 	Ray(glm::vec3 anOrigin, glm::vec3 aDirection) {
 		origin = anOrigin;
 		direction = aDirection;

@@ -98,7 +98,6 @@ int main(int argc, char** argv)
 	windowContext = InitializeWindow();
 
 #pragma endregion 
-
 #pragma region General Initialization
 
 	MeshManager::Allocate();
@@ -125,57 +124,31 @@ int main(int argc, char** argv)
 	ImguiManager imguiManager;
 	imguiManager.InitializeImGui(windowContext);
 
+	Physics::PhysicsManager physicsManager;
+	physicsManager.InitializeTestRayCast();
 
 #pragma endregion 
 
-	//glm::mat4 trans = glm::mat4(1.0f);
-
 	bool drawCubes = true;
-	//float cubePosition[3] = { 0, -5, -10.0f };
-	//float cubeRotation[3] = { 0, 0, 0 };
+	bool viewNormals = false;
+	Shader currentShader = shaderResources.ourShader;
+	float deltaTime = Time::DeltaTime();
 
 	std::vector<std::string> modelNames;
 	for (auto& mesh : MeshManager::Get().meshList) {
 		modelNames.push_back(mesh->path);
 	}
 
-	std::vector<Vertex> currentObject;
-	unsigned int currentBuffer = 0;
-	currentBuffer = renderResources.VAOs[renderResources.meshMap["Flag.obj"]->id];
-	currentObject = renderResources.meshMap["Flag.obj"]->vertices;
-
-	Physics::PhysicsManager physicsManager;
-
-	bool viewNormals = false;
-
-	// Define the origin and direction of the ray
-	glm::vec3 rayOrigin(0.0f, 0.0f, -20.0f);
-	glm::vec3 rayDirection(0.0f, 1.0f, 0.0f);
-
-	// Create a Ray object
-	Ray ray(rayOrigin, rayDirection);
-
-	// Create a RayHit object to store the result
-	RayHit hit;
-
-	Shader currentShader = shaderResources.ourShader;
-
+	std::vector<Vertex> currentObject = renderResources.meshMap["Flag.obj"]->vertices;
+	unsigned int currentBuffer = renderResources.VAOs[renderResources.meshMap["Flag.obj"]->id];
 
 	glfwSetKeyCallback(windowContext.window, key_callback);
-	//std::thread messageThread([] {
-	//	while (true)
-	//	{
-	//		std::cout << "Hello from thread!" << std::endl;
-	//		std::this_thread::sleep_for(std::chrono::seconds(1));
-	//	}
-	//});
-
 
 	while (!glfwWindowShouldClose(windowContext.window))
 	{
 		Input::ActivateInput(windowContext.window);
-		float deltaTime = Time::DeltaTime();
-		//std::cout << Time::DeltaTime() << std::endl;
+
+		deltaTime = Time::DeltaTime();
 		physicsManager.SimulatePhysics(deltaTime);
 
 		glClearColor(0.1, 0.1, 0.1, 1);
@@ -193,48 +166,40 @@ int main(int argc, char** argv)
 			viewNormals,
 			shaderResources.ourShader);
 
-		bool hitDetected = physicsManager.RayCast(ray);
-
-		// Check if the ray hit any collider
-		if (hitDetected) {
-			//std::cout << "Hit collider name: " << ray.hit.collider->GetTypeName() << std::endl;
-			//std::cout << "Hit distance: " << ray.hit.distance << std::endl;
-		}
 		float near_plane = 1.0f, far_plane = 17.5f;
+
+		//physicsManager.TestRayCast();
 
 		if (drawCubes)
 		{
 			shaderResources.ourShader.use();
 
-			glm::mat4 view;
-			Camera::MoveCamera(view);
+			RenderState renderState;
 
-			glm::mat4 projection = glm::perspective(glm::radians(Camera::GetFOV()), static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT), 0.1f, 100.0f);
-			shaderResources.ourShader.setMat4("view", view);
-			shaderResources.ourShader.setMat4("projection", projection);
+			Camera::MoveCamera(renderState.view);
 
-			unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
-			glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-			glBindFramebuffer(GL_FRAMEBUFFER, renderingManager.GetDepthMap());
-			glClear(GL_DEPTH_BUFFER_BIT);
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, renderingManager.GetDepthMap());
+			renderState.projection = glm::perspective(glm::radians(Camera::GetFOV()), static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT), 0.1f, 100.0f);
+			renderState.lightPos = entityManager.directionalLight->entityPosition;
 
-			glm::vec3 lightPos = entityManager.directionalLight->entityPosition;
+			shaderResources.ourShader.setMat4("view", renderState.view);
+			shaderResources.ourShader.setMat4("projection", renderState.projection);
+
 
 			glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-			glm::mat4 lightView = glm::lookAt(lightPos,
+			glm::mat4 lightView = glm::lookAt(renderState.lightPos,
 				glm::vec3(0.0f, 0.0f, 0.0f),
 				glm::vec3(0.0f, 2.0f, 0.0f));
 
-			glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+			renderState.lightSpaceMatrix = lightProjection * lightView;
 
-			shaderResources.simpleDepthShader.use();
-			shaderResources.simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-
-			glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-			glBindFramebuffer(GL_FRAMEBUFFER, renderingManager.GetDepthMap());
-			glClear(GL_DEPTH_BUFFER_BIT);
+			renderingManager.RenderShadowPass(
+				entityManager,
+				renderResources,
+				textureResources,
+				shaderResources.simpleDepthShader,
+				renderingManager.GetDepthMap(),
+				renderState.lightSpaceMatrix
+			);
 
 			for (Entity* entity : entityManager.entities)
 			{
@@ -279,9 +244,9 @@ int main(int argc, char** argv)
 						currentShader, 
 						entityManager, 
 						renderContext,
-						view, 
-						projection, 
-						lightSpaceMatrix);
+						renderState.view,
+						renderState.projection,
+						renderState.lightSpaceMatrix);
 				}
 			}
 		}
@@ -403,12 +368,12 @@ ShaderResources LoadShaders() {
 //Shader ourShader("Shaders/texturespotlightingshader.vs.txt", "Shaders/texturespotlightingshader.fs.txt");
 
         Shader("Shaders/lightShader.vs.txt", "Shaders/lightShader.fs.txt"),
+		//Shader("Shaders/shadowmapping.vs.txt", "Shaders/shadowmapping.fs.txt"),
         Shader("Shaders/lightingshader.vs.txt", "Shaders/lightingshader.fs.txt"),
         Shader("Shaders/lightsourceshader.vs.txt", "Shaders/lightsourceshader.fs.txt"),
         Shader("Shaders/normalviewshader.vs.txt", "Shaders/normalviewshader.fs.txt"),
         Shader("Shaders/simpledepthshader.vs.txt", "Shaders/simpledepthshader.fs.txt"),
         Shader("Shaders/debugdepthquad.vs.txt", "Shaders/debugdepthquad.fs.txt")
-		//Shader ourShader("Shaders/shadowmapping.vs.txt", "Shaders/shadowmapping.fs.txt");
     };
 }
 

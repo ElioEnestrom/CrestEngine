@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <string>
 #include "RenderingTypes.h"
+#include "Entities.h"
 
 struct Mesh;
 struct ShaderResources;
@@ -17,6 +18,14 @@ public:
                    const std::unordered_map<std::string, Mesh*>* meshes,
                    const std::unordered_map<unsigned int, unsigned int>* vaos,
                    TextureResources* textures);
+
+    void RenderShadowPass(
+        EntityManager& entityManager,
+        const RenderResources& renderResources,
+        const TextureResources& textureResources,
+        Shader& simpleDepthShader,
+        unsigned int depthMapFBO,
+        const glm::mat4& lightSpaceMatrix);
     
     void RenderFrame(EntityManager& entityManager, bool drawCubes, bool viewNormals);
     void Cleanup();

@@ -48,3 +48,10 @@ struct RenderResources {
 	std::unordered_map<unsigned int, unsigned int> VAOs;
 	unsigned int lightVAO;
 };
+
+struct RenderState {
+	glm::mat4 view;
+	glm::mat4 projection;
+	glm::mat4 lightSpaceMatrix;
+	glm::vec3 lightPos;
+};

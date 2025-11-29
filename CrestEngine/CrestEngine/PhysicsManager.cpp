@@ -339,7 +339,8 @@ namespace Physics {
 		}
 		return false;
 	}
-	
+
+
 	bool PhysicsManager::CheckRayIntersect(Ray& aRay, Collider* aCollider)
 	{
 		if (aCollider->isOf<SphereCollider>())
@@ -356,4 +357,23 @@ namespace Physics {
 	}
 	
 
+}	
+
+void Physics::PhysicsManager::InitializeTestRayCast()
+{
+    // Create a Ray object
+    testRay = Ray(glm::vec3(0.0f, 0.0f, -20.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+}
+
+void Physics::PhysicsManager::TestRayCast()
+{
+	bool hit = RayCast(testRay);
+	if (hit)
+	{
+		std::cout << "Ray hit at distance: " << testRay.hit.distance << std::endl;
+	}
+	else
+	{
+		std::cout << "Ray missed." << std::endl;
+	}
 }
