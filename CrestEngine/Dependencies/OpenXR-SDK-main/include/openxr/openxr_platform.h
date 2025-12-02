@@ -14,6 +14,14 @@
 
 #include "openxr.h"
 
+#ifdef XR_USE_PLATFORM_WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#include <unknwn.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
