@@ -4,7 +4,6 @@
   "dependencies": [
     "openxr-loader",
     "glfw3",
-    "glad",
     "glm",
     "stb",
     "imgui"

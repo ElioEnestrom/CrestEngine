@@ -7,7 +7,7 @@
 #include "EntityProperty.h"
 #include "Collision.h"
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <string>
 #include <vector>
 #include <list>

@@ -5,7 +5,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 #include <GLFW/glfw3.h>
 
@@ -39,12 +39,16 @@
 #include <functional>
 #include <map>
 
-#include <openxr/openxr.h>
-#include <openxr/openxr_platform.h>
+//#include <openxr/openxr.h>
+//#include <openxr/openxr_platform.h>
 #include "RenderingTypes.h"
 #include "RenderingManager.h"
+#include "VRManager.h"
 
 
+//#include <DebugOutput.h>
+//#include <GraphicsAPI_OpenGL.h>
+//#include <OpenXRDebugUtils.h>
 
 
 // Add Windows-specific includes for console handling
@@ -128,6 +132,14 @@ int main(int argc, char** argv)
 	physicsManager.InitializeTestRayCast();
 
 #pragma endregion 
+
+	VRManager vrManager;
+	if (vrManager.Initialize(windowContext.window)) {
+		std::cout << "VR Manager initialized successfully." << std::endl;
+	} else {
+		std::cout << "VR Manager is not active." << std::endl;
+	}
+
 
 	bool drawCubes = true;
 	bool viewNormals = false;
@@ -349,7 +361,9 @@ WindowContext InitializeWindow() {
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    // Changed from gladLoadGL to gladLoadGLLoader for GLAD2
+    int version = gladLoadGL(glfwGetProcAddress);
+    if (version == 0) {
         std::cerr << "Failed to initialize GLAD" << std::endl;
         exit(-1);
     }

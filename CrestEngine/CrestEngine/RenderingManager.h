@@ -1,5 +1,5 @@
 #pragma once
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <unordered_map>
 #include <string>
 #include "RenderingTypes.h"

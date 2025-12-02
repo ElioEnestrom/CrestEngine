@@ -180,9 +180,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;XR_USE_GRAPHICS_API_OPENGL;XR_USE_PLATFORM_WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\GLFW\include;$(SolutionDir)Dependencies\Glad;$(SolutionDir)Dependencies\Stbimage;$(SolutionDir)Dependencies\GLM\glm;$(SolutionDir)Dependencies\imgui;$(SolutionDir)Dependencies\imgui\misc\cpp;$(SolutionDir)Dependencies\imgui\backends;$(SolutionDir)Dependencies\OpenXR-SDK-main\include;$(SolutionDir)Dependencies\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\GLFW\include;$(SolutionDir)Dependencies\Stbimage;$(SolutionDir)Dependencies\GLM\glm;$(SolutionDir)Dependencies\imgui;$(SolutionDir)Dependencies\imgui\misc\cpp;$(SolutionDir)Dependencies\imgui\backends;$(SolutionDir)Dependencies\OpenXR-SDK-main\include;$(SolutionDir)Dependencies\Common;$(SolutionDir)Dependencies\OpenXR-SDK-main\src\common;$(SolutionDir)Dependencies\Glad;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -219,8 +219,10 @@
     <ClCompile Include="Entities.cpp" />
     <ClCompile Include="EntityProperty.cpp" />
     <ClCompile Include="GeneralProperty.cpp" />
-    <ClCompile Include="glad.c" />
+    <ClCompile Include="gl.c" />
     <ClCompile Include="GraphicProperty.cpp" />
+    <ClCompile Include="GraphicsAPI.cpp" />
+    <ClCompile Include="GraphicsAPI_OpenGL.cpp" />
     <ClCompile Include="imgui.cpp" />
     <ClCompile Include="ImguiManager.cpp" />
     <ClCompile Include="imgui_demo.cpp" />
@@ -241,11 +243,14 @@
     <ClCompile Include="MessageQueue.cpp" />
     <ClCompile Include="ModelProperty.cpp" />
     <ClCompile Include="OBJLoader.cpp" />
+    <ClCompile Include="OpenXRDebugUtils.cpp" />
     <ClCompile Include="PhysicsManager.cpp" />
     <ClCompile Include="RenderingManager.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Time.cpp" />
+    <ClCompile Include="VRManager.cpp" />
+    <ClCompile Include="wgl.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
@@ -277,6 +282,7 @@
     <ClInclude Include="SphereCollider.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Time.h" />
+    <ClInclude Include="VRManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
