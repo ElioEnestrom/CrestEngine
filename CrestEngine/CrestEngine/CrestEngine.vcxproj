@@ -216,9 +216,11 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Collision.cpp" />
+    <ClCompile Include="egl.c" />
     <ClCompile Include="Entities.cpp" />
     <ClCompile Include="EntityProperty.cpp" />
     <ClCompile Include="GeneralProperty.cpp" />
+    <ClCompile Include="gfxwrapper_opengl.c" />
     <ClCompile Include="gl.c" />
     <ClCompile Include="GraphicProperty.cpp" />
     <ClCompile Include="GraphicsAPI.cpp" />

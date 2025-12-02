@@ -9,7 +9,6 @@ SPDX-License-Identifier: Apache-2.0
 #include "gfxwrapper_opengl.h"
 #include "EGL/eglplatform.h"
 #include "glad/egl.h"
-#include "glad/wgl.h"
 
 /*
 ================================================================================================================================
