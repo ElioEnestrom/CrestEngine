@@ -155,113 +155,150 @@ int main(int argc, char** argv)
 	unsigned int currentBuffer = renderResources.VAOs[renderResources.meshMap["Flag.obj"]->id];
 
 	glfwSetKeyCallback(windowContext.window, key_callback);
-
-	while (!glfwWindowShouldClose(windowContext.window))
+	if(vrManager.IsActive()) 
 	{
-		Input::ActivateInput(windowContext.window);
-
-		deltaTime = Time::DeltaTime();
-		physicsManager.SimulatePhysics(deltaTime);
-
-		glClearColor(0.1, 0.1, 0.1, 1);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		imguiManager.UpdateImGui(
-			drawCubes,
-			entityManager,
-			modelNames,
-			currentObject,
-			renderResources.meshMap,
-			currentBuffer,
-			renderResources.VAOs,
-			textureResources.textureNames,
-			viewNormals,
-			shaderResources.ourShader);
-
-		float near_plane = 1.0f, far_plane = 17.5f;
-
-		//physicsManager.TestRayCast();
-
-		if (drawCubes)
+		while (!glfwWindowShouldClose(windowContext.window))
 		{
-			shaderResources.ourShader.use();
-
-			RenderState renderState;
-
-			Camera::MoveCamera(renderState.view);
-
-			renderState.projection = glm::perspective(glm::radians(Camera::GetFOV()), static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT), 0.1f, 100.0f);
-			renderState.lightPos = entityManager.directionalLight->entityPosition;
-
-			shaderResources.ourShader.setMat4("view", renderState.view);
-			shaderResources.ourShader.setMat4("projection", renderState.projection);
-
-
-			glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-			glm::mat4 lightView = glm::lookAt(renderState.lightPos,
-				glm::vec3(0.0f, 0.0f, 0.0f),
-				glm::vec3(0.0f, 2.0f, 0.0f));
-
-			renderState.lightSpaceMatrix = lightProjection * lightView;
-
-			renderingManager.RenderShadowPass(
-				entityManager,
-				renderResources,
-				textureResources,
-				shaderResources.simpleDepthShader,
-				renderingManager.GetDepthMap(),
-				renderState.lightSpaceMatrix
-			);
-
-			for (Entity* entity : entityManager.entities)
-			{
-				if (entity != nullptr)
-				{
-					glm::mat4 model;
-					model = glm::mat4(1.0f);
-					model = glm::translate(model, entity->entityPosition);
-					model = glm::rotate(model, glm::radians(entity->rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-					model = glm::rotate(model, glm::radians(entity->rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-					model = glm::rotate(model, glm::radians(entity->rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-					model = glm::scale(model, entity->scale);
-					shaderResources.simpleDepthShader.setMat4("model", model);
-
-					currentBuffer = renderResources.VAOs[renderResources.meshMap[entity->model]->id];
-
-					glActiveTexture(GL_TEXTURE0);
-					glBindTexture(GL_TEXTURE_2D, renderingManager.GetDepthMap());
-					glActiveTexture(GL_TEXTURE1);
-					glBindTexture(GL_TEXTURE_2D, textureResources.textureIDs[entity->textureIndex1]);
-					glActiveTexture(GL_TEXTURE2);
-					glBindTexture(GL_TEXTURE_2D, textureResources.textureIDs[entity->textureIndex2]);
-					//glBindTexture(GL_TEXTURE_2D, depthMap);
-
-					glBindVertexArray(renderResources.VAOs[renderResources.meshMap[entity->model]->id]);
-					glDrawArrays(GL_TRIANGLES, 0, renderResources.meshMap[entity->model]->vertices.size());
-				}
-			}
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+			Input::ActivateInput(windowContext.window);
+		
+			deltaTime = Time::DeltaTime();
+			physicsManager.SimulatePhysics(deltaTime);
+		
+			glClearColor(0.1, 0.1, 0.1, 1);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+			vrManager.PollEvents();
+			vrManager.RenderFrame();
 
-			RenderContext renderContext = { renderResources.meshMap, renderResources.VAOs, textureResources, shaderResources, renderingManager.GetDepthMap(), viewNormals};
-
-			for (Entity* entity : entityManager.entities)
+			//imguiManager.UpdateImGui(
+			//	drawCubes,
+			//	entityManager,
+			//	modelNames,
+			//	currentObject,
+			//	renderResources.meshMap,
+			//	currentBuffer,
+			//	renderResources.VAOs,
+			//	textureResources.textureNames,
+			//	viewNormals,
+			//	shaderResources.ourShader);
+		
+			//vrManager.RenderFrame(entityManager, drawCubes, viewNormals);
+		
+			//ImGui::Render();
+			//ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		
+			//glfwSwapBuffers(windowContext.window);
+			//glfwPollEvents();
+		}
+	} 
+	else 
+	{
+		while (!glfwWindowShouldClose(windowContext.window))
+		{
+			Input::ActivateInput(windowContext.window);
+		
+			deltaTime = Time::DeltaTime();
+			physicsManager.SimulatePhysics(deltaTime);
+		
+			glClearColor(0.1, 0.1, 0.1, 1);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+			imguiManager.UpdateImGui(
+				drawCubes,
+				entityManager,
+				modelNames,
+				currentObject,
+				renderResources.meshMap,
+				currentBuffer,
+				renderResources.VAOs,
+				textureResources.textureNames,
+				viewNormals,
+				shaderResources.ourShader);
+		
+			float near_plane = 1.0f, far_plane = 17.5f;
+		
+			//physicsManager.TestRayCast();
+		
+			if (drawCubes)
 			{
-				if (entity != nullptr)
+				shaderResources.ourShader.use();
+		
+				RenderState renderState;
+		
+				Camera::MoveCamera(renderState.view);
+		
+				renderState.projection = glm::perspective(glm::radians(Camera::GetFOV()), static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT), 0.1f, 100.0f);
+				renderState.lightPos = entityManager.directionalLight->entityPosition;
+		
+				shaderResources.ourShader.setMat4("view", renderState.view);
+				shaderResources.ourShader.setMat4("projection", renderState.projection);
+		
+		
+				glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+				glm::mat4 lightView = glm::lookAt(renderState.lightPos,
+					glm::vec3(0.0f, 0.0f, 0.0f),
+					glm::vec3(0.0f, 2.0f, 0.0f));
+		
+				renderState.lightSpaceMatrix = lightProjection * lightView;
+		
+				renderingManager.RenderShadowPass(
+					entityManager,
+					renderResources,
+					textureResources,
+					shaderResources.simpleDepthShader,
+					renderingManager.GetDepthMapFBO(),
+					renderState.lightSpaceMatrix
+				);
+		
+				for (Entity* entity : entityManager.entities)
 				{
-					glm::mat4 model;
-					RenderEntity(
-						entity, 
-						currentShader, 
-						entityManager, 
-						renderContext,
-						renderState.view,
-						renderState.projection,
-						renderState.lightSpaceMatrix);
+					if (entity != nullptr)
+					{
+						glm::mat4 model;
+						model = glm::mat4(1.0f);
+						model = glm::translate(model, entity->entityPosition);
+						model = glm::rotate(model, glm::radians(entity->rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+						model = glm::rotate(model, glm::radians(entity->rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+						model = glm::rotate(model, glm::radians(entity->rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+						model = glm::scale(model, entity->scale);
+						shaderResources.simpleDepthShader.setMat4("model", model);
+		
+						currentBuffer = renderResources.VAOs[renderResources.meshMap[entity->model]->id];
+		
+						glActiveTexture(GL_TEXTURE0);
+						glBindTexture(GL_TEXTURE_2D, renderingManager.GetDepthMap());
+						glActiveTexture(GL_TEXTURE1);
+						glBindTexture(GL_TEXTURE_2D, textureResources.textureIDs[entity->textureIndex1]);
+						glActiveTexture(GL_TEXTURE2);
+						glBindTexture(GL_TEXTURE_2D, textureResources.textureIDs[entity->textureIndex2]);
+						//glBindTexture(GL_TEXTURE_2D, depthMap);
+		
+						glBindVertexArray(renderResources.VAOs[renderResources.meshMap[entity->model]->id]);
+						glDrawArrays(GL_TRIANGLES, 0, renderResources.meshMap[entity->model]->vertices.size());
+					}
+				}
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+				RenderContext renderContext = { renderResources.meshMap, renderResources.VAOs, textureResources, shaderResources, renderingManager.GetDepthMap(), viewNormals};
+		
+				for (Entity* entity : entityManager.entities)
+				{
+					if (entity != nullptr)
+					{
+						glm::mat4 model;
+						RenderEntity(
+							entity, 
+							currentShader, 
+							entityManager, 
+							renderContext,
+							renderState.view,
+							renderState.projection,
+							renderState.lightSpaceMatrix);
+					}
 				}
 			}
-		}
 			//debugDepthQuad.use();
 			//debugDepthQuad.setInt("depthMap", 0);
 			//debugDepthQuad.setFloat("near_plane", near_plane);
@@ -269,13 +306,15 @@ int main(int argc, char** argv)
 			//glActiveTexture(GL_TEXTURE0);
 			//glBindTexture(GL_TEXTURE_2D, depthMap);
 			//renderQuad();
-
+		
 			ImGui::Render();
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
+		
 			glfwSwapBuffers(windowContext.window);
 			glfwPollEvents();
+		}
 	}
+	
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();

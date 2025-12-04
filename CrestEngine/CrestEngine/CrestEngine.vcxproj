@@ -246,6 +246,7 @@
     <ClCompile Include="ModelProperty.cpp" />
     <ClCompile Include="OBJLoader.cpp" />
     <ClCompile Include="OpenXRDebugUtils.cpp" />
+    <ClCompile Include="OPENXRPROGRAM.CPP" />
     <ClCompile Include="PhysicsManager.cpp" />
     <ClCompile Include="RenderingManager.cpp" />
     <ClCompile Include="Shader.cpp" />

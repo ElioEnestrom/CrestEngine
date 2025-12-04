@@ -72,6 +72,13 @@ void RenderingManager::RenderShadowPass(
 {
     unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 
+    // Verify the framebuffer is still valid, regenerate if needed
+    if (!glIsFramebuffer(depthMapFBO)) {
+        std::cerr << "WARNING: Shadow framebuffer was deleted, regenerating..." << std::endl;
+        SetupShadowMapping(shadowWidth, shadowHeight);
+        depthMapFBO = this->depthMapFBO;
+    }
+
     glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glClear(GL_DEPTH_BUFFER_BIT);

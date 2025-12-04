@@ -228,6 +228,9 @@
     <ClCompile Include="egl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="OPENXRPROGRAM.CPP">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Entities.h">

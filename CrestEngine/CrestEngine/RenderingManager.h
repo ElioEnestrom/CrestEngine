@@ -33,6 +33,7 @@ public:
     ShaderResources* shaderResources = nullptr;
     TextureResources* textureResources = nullptr;
     unsigned int GetDepthMap() const { return depthMap; }
+	unsigned int GetDepthMapFBO() const { return depthMapFBO; }
     
 private:
     void SetupShadowMapping(unsigned int width, unsigned int height);
