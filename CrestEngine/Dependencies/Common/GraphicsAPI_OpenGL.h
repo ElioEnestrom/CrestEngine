@@ -6,6 +6,7 @@
 
 #pragma once
 #include <GraphicsAPI.h>
+#include "Texture.h"
 
 #if defined(XR_USE_GRAPHICS_API_OPENGL)
 class GraphicsAPI_OpenGL : public GraphicsAPI {
@@ -72,6 +73,8 @@ public:
     virtual void SetIndexBuffer(void* indexBuffer) override;
     virtual void DrawIndexed(uint32_t indexCount, uint32_t instanceCount = 1, uint32_t firstIndex = 0, int32_t vertexOffset = 0, uint32_t firstInstance = 0) override;
     virtual void Draw(uint32_t vertexCount, uint32_t instanceCount = 1, uint32_t firstVertex = 0, uint32_t firstInstance = 0) override;
+
+    void RegisterExistingTexture(GLuint textureID, uint32_t width, uint32_t height, int64_t format);
 
 private:
     virtual const std::vector<int64_t> GetSupportedColorSwapchainFormats() override;

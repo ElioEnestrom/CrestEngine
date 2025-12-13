@@ -730,6 +730,23 @@ void GraphicsAPI_OpenGL::BeginRendering() {
     glBindFramebuffer(GL_FRAMEBUFFER, setFramebuffer);
 }
 
+void GraphicsAPI_OpenGL::RegisterExistingTexture(GLuint textureID, uint32_t width, uint32_t height, int64_t format) {
+    // DON'T call glGenTextures - texture already exists!
+    // Just add it to the images map so SetDescriptor can find it
+    ImageCreateInfo imageCI;
+    imageCI.dimension = 2;
+    imageCI.width = width;
+    imageCI.height = height;
+    imageCI.depth = 1;
+    imageCI.mipLevels = 1;
+    imageCI.arrayLayers = 1;
+    imageCI.format = format;
+    imageCI.sampleCount = 1;
+    imageCI.cubemap = false;
+
+    images[textureID] = imageCI;  // Register existing texture
+}
+
 void GraphicsAPI_OpenGL::EndRendering() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDeleteFramebuffers(1, &setFramebuffer);
@@ -1049,13 +1066,19 @@ void GraphicsAPI_OpenGL::SetDescriptor(const DescriptorInfo &descriptorInfo) {
     GLuint glResource = (GLuint)(uint64_t)descriptorInfo.resource;
     const GLuint &bindingIndex = descriptorInfo.bindingIndex;
     if (descriptorInfo.type == DescriptorInfo::Type::BUFFER) {
-        PFNGLBINDBUFFERRANGEPROC glBindBufferRange = (PFNGLBINDBUFFERRANGEPROC)GetExtension("glBindBufferRange");  // 3.0+
+        PFNGLBINDBUFFERRANGEPROC glBindBufferRange = (PFNGLBINDBUFFERRANGEPROC)GetExtension("glBindBufferRange");
         glBindBufferRange(GL_UNIFORM_BUFFER, bindingIndex, glResource, (GLintptr)descriptorInfo.bufferOffset, (GLsizeiptr)descriptorInfo.bufferSize);
     } else if (descriptorInfo.type == DescriptorInfo::Type::IMAGE) {
+        std::cout << "OpenGL: Binding texture " << glResource << " to unit " << bindingIndex << std::endl;
         glActiveTexture(GL_TEXTURE0 + bindingIndex);
         glBindTexture(GetGLTextureTarget(images[glResource]), glResource);
+        
+        // Verify binding
+        GLint boundTexture = 0;
+        glGetIntegerv(GL_TEXTURE_BINDING_2D, &boundTexture);
+        std::cout << "OpenGL: Verified texture binding: " << boundTexture << std::endl;
     } else if (descriptorInfo.type == DescriptorInfo::Type::SAMPLER) {
-        PFNGLBINDSAMPLERPROC glBindSampler = (PFNGLBINDSAMPLERPROC)GetExtension("glBindSampler");  // 3.0+
+        PFNGLBINDSAMPLERPROC glBindSampler = (PFNGLBINDSAMPLERPROC)GetExtension("glBindSampler");
         glBindSampler(bindingIndex, glResource);
     } else {
         std::cout << "ERROR: OPENGL: Unknown Descriptor Type." << std::endl;
